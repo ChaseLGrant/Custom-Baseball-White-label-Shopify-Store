@@ -1,0 +1,289 @@
+// Club Custom data model.
+//
+// The product catalog and supplier pricing rules are NOT stored here: they live
+// in src/lib/catalog as versioned, reviewed code so every price change has an
+// audit trail in git. Orders snapshot the prices they were charged.
+//
+// Status-like fields are plain strings (validated in src/lib/domain.ts) so the
+// same schema works on SQLite (local) and Postgres (production).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String       @id @default(cuid())
+  email        String       @unique
+  name         String
+  passwordHash String
+  // Club Custom employees: verify tax exemptions, upload proofs, update production.
+  isStaff      Boolean      @default(false)
+  createdAt    DateTime     @default(now())
+  memberships  Membership[]
+  sessions     Session[]
+}
+
+model Session {
+  id        String   @id // random token stored (hashed) in an httpOnly cookie
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+}
+
+model Organization {
+  id                     String    @id @default(cuid())
+  name                   String
+  // HIGH_SCHOOL | COLLEGE | TRAVEL | CLUB | OTHER
+  type                   String
+  primaryColor           String    @default("#0b2545")
+  secondaryColor         String    @default("#ffffff")
+
+  // Tax exemption: NONE -> PENDING (certificate uploaded) -> VERIFIED | REJECTED (staff)
+  taxExemptStatus        String    @default("NONE")
+  taxExemptCertificate   String?
+  taxExemptNote          String?
+
+  // Invoice / net terms for purchase orders: NONE -> PENDING -> APPROVED | REJECTED (staff)
+  termsStatus            String    @default("NONE")
+  termsNetDays           Int?
+  termsApplicationNote   String?
+
+  // Optional internal approval: orders placed by coaches above this amount
+  // must be approved by an org admin/purchaser before payment. null = off.
+  approvalThresholdCents Int?
+
+  createdAt              DateTime  @default(now())
+  memberships            Membership[]
+  teams                  Team[]
+  logos                  Logo[]
+  addresses              Address[]
+  designs                SavedDesign[]
+  orders                 Order[]
+  invites                Invite[]
+}
+
+model Membership {
+  id             String       @id @default(cuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  // OWNER | ADMIN | PURCHASER | COACH
+  role           String
+  createdAt      DateTime     @default(now())
+
+  @@unique([userId, organizationId])
+}
+
+model Invite {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  email          String
+  role           String
+  token          String       @unique
+  acceptedAt     DateTime?
+  createdAt      DateTime     @default(now())
+}
+
+model Team {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String       // "Varsity Baseball"
+  sport          String       // BASEBALL | SOFTBALL | ...
+  level          String?      // Varsity, JV, 14U ...
+  primaryColor   String?
+  secondaryColor String?
+  archived       Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  roster         RosterPlayer[]
+  orderLines     OrderLine[]
+  designs        SavedDesign[]
+}
+
+// The team's saved roster. Imported once from a spreadsheet, reused every order.
+model RosterPlayer {
+  id         String  @id @default(cuid())
+  teamId     String
+  team       Team    @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  name       String
+  number     String?
+  // Default apparel size, plus optional category-specific sizes.
+  size       String?
+  topSize    String?
+  bottomSize String?
+  hatSize    String?
+  sortOrder  Int     @default(0)
+}
+
+model Logo {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  fileUrl        String
+  mimeType       String
+  isVector       Boolean      @default(false)
+  // JSON array of decoration methods whose one-time setup (digitizing, screens)
+  // has already been paid for this exact artwork, e.g. ["EMBROIDERY"].
+  setupsPaid     String       @default("[]")
+  archived       Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+}
+
+model Address {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  label          String       // "Athletic Dept", "Field House"
+  attention      String?
+  line1          String
+  line2          String?
+  city           String
+  state          String
+  postalCode     String
+  country        String       @default("US")
+  phone          String?
+  isDefault      Boolean      @default(false)
+}
+
+// A saved product configuration (color + logos + placements) that can be
+// dropped into any future order: "our home jersey".
+model SavedDesign {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  teamId         String?
+  team           Team?        @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  name           String
+  productId      String
+  config         String       // JSON LineConfig (see src/lib/domain.ts)
+  createdAt      DateTime     @default(now())
+}
+
+model Order {
+  id                   String       @id @default(cuid())
+  number               Int          @unique
+  organizationId       String
+  organization         Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdById          String
+  name                 String       // "Spring 2027 Baseball"
+  // See ORDER_STATUSES in src/lib/domain.ts
+  status               String       @default("DRAFT")
+  paymentMethod        String       @default("CARD") // CARD | INVOICE
+  poNumber             String?
+  shippingAddressId    String?
+  shippingSnapshot     String?      // JSON copy of the address at submission
+  notes                String?
+
+  // Pricing snapshot, written when the order is submitted.
+  catalogVersion       String?
+  subtotalCents        Int          @default(0)
+  decorationCents      Int          @default(0)
+  personalizationCents Int          @default(0)
+  setupCents           Int          @default(0)
+  shippingCents        Int          @default(0)
+  totalCents           Int          @default(0) // before tax; Shopify computes tax
+  taxExempt            Boolean      @default(false)
+  quoteReasons         String?      // JSON array; non-empty => cannot auto-checkout
+
+  approvalRequestedAt  DateTime?
+  approvedById         String?
+  approvedAt           DateTime?
+
+  shopifyDraftOrderId  String?
+  shopifyOrderId       String?
+  shopifyOrderName     String?
+  checkoutUrl          String?
+  paidAt               DateTime?
+
+  reorderedFromId      String?
+  submittedAt          DateTime?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  lines                OrderLine[]
+  proofs               Proof[]
+  events               OrderEvent[]
+  shipments            Shipment[]
+}
+
+model OrderLine {
+  id                   String     @id @default(cuid())
+  orderId              String
+  order                Order      @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  teamId               String?
+  team                 Team?      @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  productId            String
+  config               String     // JSON LineConfig
+  sortOrder            Int        @default(0)
+  // Snapshot at submission
+  quantity             Int        @default(0)
+  unitPriceCents       Int        @default(0)
+  decorationUnitCents  Int        @default(0)
+  lineTotalCents       Int        @default(0)
+  // Set by staff after a pricing review for quote-required products (all-in per piece).
+  quotedUnitCents      Int?
+  items                OrderLineItem[]
+}
+
+// One row per player (or per size bucket when not personalized).
+model OrderLineItem {
+  id        String    @id @default(cuid())
+  lineId    String
+  line      OrderLine @relation(fields: [lineId], references: [id], onDelete: Cascade)
+  name      String?
+  number    String?
+  size      String
+  quantity  Int       @default(1)
+  sortOrder Int       @default(0)
+}
+
+model Proof {
+  id           String    @id @default(cuid())
+  orderId      String
+  order        Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  version      Int
+  fileUrl      String
+  staffNote    String?
+  // PENDING | APPROVED | CHANGES_REQUESTED
+  status       String    @default("PENDING")
+  customerNote String?
+  decidedById  String?
+  decidedAt    DateTime?
+  createdAt    DateTime  @default(now())
+}
+
+model OrderEvent {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  type      String   // STATUS | NOTE | PAYMENT | PROOF | SHIPMENT
+  message   String
+  // Shown to the customer? Internal staff notes are hidden.
+  visible   Boolean  @default(true)
+  actorId   String?
+  createdAt DateTime @default(now())
+}
+
+model Shipment {
+  id             String   @id @default(cuid())
+  orderId        String
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  carrier        String?
+  trackingNumber String?
+  trackingUrl    String?
+  shopifyFulfillmentId String? @unique
+  createdAt      DateTime @default(now())
+}
+
+model Counter {
+  id    String @id
+  value Int
+}

@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+@theme {
+  --color-brand-50: #eef3fa;
+  --color-brand-100: #d6e2f2;
+  --color-brand-600: #1d4f91;
+  --color-brand-700: #163d72;
+  --color-brand-800: #0f2d55;
+  --color-brand-900: #0b2545;
+  --color-accent-500: #e2492f;
+  --color-accent-600: #c8381f;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+body {
+  @apply bg-slate-50 text-slate-900 antialiased;
+}
+
+/* Form controls get consistent, accessible styling by default. */
+@layer base {
+  input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="tel"],
+  input:not([type]), select, textarea {
+    @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm
+      focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none disabled:bg-slate-100;
+  }
+  input[type="file"] {
+    @apply block w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-brand-50
+      file:px-3 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100;
+  }
+  label { @apply text-sm font-medium text-slate-700; }
+}
