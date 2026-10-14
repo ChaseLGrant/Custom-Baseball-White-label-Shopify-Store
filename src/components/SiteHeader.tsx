@@ -25,7 +25,7 @@ export async function SiteHeader() {
           ) : (
             <>
               <Link href="/login" className="rounded px-2 py-1 font-medium text-slate-700 hover:text-brand-700">Sign in</Link>
-              <ButtonLink href="/signup" variant="accent">Start an order</ButtonLink>
+              <ButtonLink href="/order" variant="accent">Start an order</ButtonLink>
             </>
           )}
         </nav>

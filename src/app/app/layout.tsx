@@ -29,6 +29,7 @@ export default async function PortalLayout({ children }: { children: React.React
             {nav.map((n) => <NavLink key={n.href} {...n} />)}
           </nav>
           <div className="ml-auto flex items-center gap-3 text-sm">
+            <Link href="/order" className="rounded-md bg-accent-500 px-3 py-1.5 font-semibold text-white hover:bg-accent-600">New order</Link>
             {user.memberships.length > 1 ? (
               <form action={switchOrganization} className="flex items-center gap-1">
                 <select name="orgId" defaultValue={org.id} className="!w-auto !py-1" aria-label="Organization">

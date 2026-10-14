@@ -4,6 +4,7 @@ import { Badge, Button, ButtonLink, Card, CardHeader, Field, Notice, PageHeader,
 import { MilestoneTracker } from "@/components/MilestoneTracker";
 import { OrderLinesSummary } from "@/components/OrderLinesSummary";
 import { approveOrderAction, cancelOrderAction, decideProofAction, editOrderAction, reorderAction } from "@/lib/actions/orders";
+import { reorderAndPay } from "@/lib/actions/quick";
 import { ORDER_STATUSES, can, formatMoney, formatOrderNumber, isPaidOrInvoiced, parseJsonArray, type OrderStatus } from "@/lib/domain";
 import type { OrgContext } from "@/lib/server/auth";
 import type { FullOrder } from "@/lib/server/orders";
@@ -26,10 +27,16 @@ export async function OrderStatusView({ order, ctx, justSubmitted }: { order: Fu
         description={`${formatOrderNumber(order.number)} · placed by ${creator?.name ?? "—"}${order.submittedAt ? ` on ${order.submittedAt.toLocaleDateString()}` : ""}`}
         actions={
           isPaidOrInvoiced(status) || status === "CANCELLED" ? (
-            <form action={reorderAction}>
-              <input type="hidden" name="orderId" value={order.id} />
-              <Button variant="secondary">↻ Reorder</Button>
-            </form>
+            <>
+              <form action={reorderAction}>
+                <input type="hidden" name="orderId" value={order.id} />
+                <Button variant="secondary">Reorder &amp; edit</Button>
+              </form>
+              <form action={reorderAndPay}>
+                <input type="hidden" name="orderId" value={order.id} />
+                <Button variant="accent">↻ Reorder &amp; pay</Button>
+              </form>
+            </>
           ) : null
         }
       />

@@ -6,9 +6,15 @@
 // pointing at {APP_URL}/api/webhooks/shopify.
 import { db } from "@/lib/server/db";
 import { verifyShopifyWebhook } from "@/lib/server/shopify";
-import { addEvent, markPaid, setStatus } from "@/lib/server/orders";
+import { addEvent, markPaid, setStatus, type ShopifyShippingAddress } from "@/lib/server/orders";
 
-type ShopifyOrder = { id: number; admin_graphql_api_id: string; name: string; note_attributes?: { name: string; value: string }[] };
+type ShopifyOrder = {
+  id: number;
+  admin_graphql_api_id: string;
+  name: string;
+  note_attributes?: { name: string; value: string }[];
+  shipping_address?: ShopifyShippingAddress | null;
+};
 type ShopifyFulfillment = {
   id: number;
   order_id: number;
@@ -27,7 +33,7 @@ export async function POST(req: Request) {
   if (topic === "orders/paid") {
     const o = body as ShopifyOrder;
     const ccId = o.note_attributes?.find((a) => a.name === "club_custom_order_id")?.value;
-    if (ccId) await markPaid(ccId, { orderId: o.admin_graphql_api_id, name: o.name });
+    if (ccId) await markPaid(ccId, { orderId: o.admin_graphql_api_id, name: o.name, shippingAddress: o.shipping_address });
     else {
       // Invoice orders are already linked by Shopify order id.
       const order = await db.order.findFirst({ where: { shopifyOrderId: o.admin_graphql_api_id } });

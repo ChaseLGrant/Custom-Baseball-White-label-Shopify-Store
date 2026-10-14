@@ -79,7 +79,7 @@ export const submitOrderAction = action(async (_prev: unknown, fd: FormData) => 
   const result = await submitOrder(orderId, { userId: user.id, role, organizationId: org.id }, {
     paymentMethod,
     poNumber: optStr(fd, "poNumber"),
-    shippingAddressId: str(fd, "shippingAddressId"),
+    shippingAddressId: optStr(fd, "shippingAddressId"),
     notes: optStr(fd, "notes"),
     contactEmail: user.email,
   });

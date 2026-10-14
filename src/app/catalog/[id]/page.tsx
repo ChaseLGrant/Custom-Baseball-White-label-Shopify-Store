@@ -54,7 +54,7 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
               <div><dt className="text-slate-500">Sizes</dt><dd className="font-semibold">{product.sizes.join(", ")}</dd></div>
               <div><dt className="text-slate-500">Logo placements</dt><dd className="font-semibold">{product.locations.map((l) => l.label).join(", ")}</dd></div>
             </dl>
-            <ButtonLink href="/signup" variant="accent" className="mt-6">Start an order with this product</ButtonLink>
+            <ButtonLink href="/order" variant="accent" className="mt-6">Start an order with this product</ButtonLink>
           </div>
         </div>
 

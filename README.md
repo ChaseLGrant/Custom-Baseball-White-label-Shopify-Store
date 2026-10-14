@@ -6,6 +6,18 @@ Self-service custom team uniform ordering for high schools, colleges, travel and
 
 ---
 
+## How few clicks it takes
+
+| Situation | What the coach does |
+|---|---|
+| **First order ever** | Open `/order`, drop a logo, drop a roster spreadsheet, type name/email/school/password, press **Pay**. The uniform kit is pre-selected. Shopify collects the shipping address and payment. |
+| **Returning coach** | **New order → Pay.** The saved logo and roster are already filled in. |
+| **Next season** | **Reorder & pay**: one click from the dashboard to payment, at today's prices with the current roster. |
+
+The full order builder (multiple teams, custom placements, PO/invoice) is still there for athletic directors who need it, but it is never required.
+
+---
+
 ## Quick start (local)
 
 You need [Node.js 20+](https://nodejs.org).
@@ -21,7 +33,7 @@ Demo accounts (password `clubcustom123`):
 
 | Who | Email | Try this |
 |---|---|---|
-| Coach / owner | `coach@lincoln.test` | Approve the waiting proof, reorder last season, start a "Full uniform kit" |
+| Coach / owner | `coach@lincoln.test` | Click **New order → Pay**, try **Reorder & pay**, approve the waiting proof |
 | Club Custom staff | `staff@clubcustom.test` | Upload proofs, price quote-only items, verify tax-exempt certificates |
 
 Shopify isn't connected by default, so checkout runs in **test mode**: a clearly labelled fake payment page, and no card is charged. See [docs/SHOPIFY.md](docs/SHOPIFY.md) to connect a real store.

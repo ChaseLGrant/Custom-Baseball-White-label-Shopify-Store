@@ -12,7 +12,7 @@ export default function SignupPage() {
     <AuthShell
       title="Create your free account"
       subtitle="Takes 30 seconds. You'll set up your logo, teams and first order next."
-      footer={<>Already have an account? <Link className="font-semibold text-brand-600" href="/login">Sign in</Link></>}
+      footer={<>Already have an account? <Link className="font-semibold text-brand-600" href="/login">Sign in</Link> · Ready to order? <Link className="font-semibold text-brand-600" href="/order">Skip straight to ordering</Link></>}
     >
       <ActionForm action={signup} submitLabel="Create account" submitVariant="accent">
         <Field label="Your name" htmlFor="name"><input id="name" name="name" autoComplete="name" required /></Field>

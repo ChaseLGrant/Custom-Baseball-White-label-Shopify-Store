@@ -41,10 +41,10 @@ export default function Home() {
                 Upload your logo once, import your roster, see the real price, and pay online — for one team or your whole athletic department.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
-                <ButtonLink href="/signup" variant="accent" className="px-6 py-3 text-base">Start your order</ButtonLink>
+                <ButtonLink href="/order" variant="accent" className="px-6 py-3 text-base">Start your order</ButtonLink>
                 <ButtonLink href="/catalog" variant="secondary" className="px-6 py-3 text-base">See prices</ButtonLink>
               </div>
-              <p className="mt-4 text-sm text-brand-100">Free account · No minimum commitment · Prices shown before you sign up</p>
+              <p className="mt-4 text-sm text-brand-100">Drop your logo and roster, see your price, pay. That's it.</p>
             </div>
             <Card className="p-5 text-slate-900">
               <p className="text-sm font-semibold text-slate-500">A full baseball uniform kit, in one order</p>

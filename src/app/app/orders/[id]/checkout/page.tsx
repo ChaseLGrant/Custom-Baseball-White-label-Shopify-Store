@@ -78,12 +78,12 @@ export default async function CheckoutPage({ params }: { params: Promise<{ id: s
                 <CardHeader title="2. Shipping address" />
                 <div className="p-5">
                   {addresses.length === 0 ? (
-                    <p className="text-sm text-amber-700">Add a shipping address below first.</p>
+                    <p className="text-sm text-slate-600">You&apos;ll enter it on the secure payment page. (Paying by purchase order? Save an address below.)</p>
                   ) : (
                     <div className="grid gap-2 sm:grid-cols-2">
                       {addresses.map((a, i) => (
                         <label key={a.id} className="flex cursor-pointer gap-2 rounded-lg border border-slate-200 p-3 font-normal has-[:checked]:border-brand-600 has-[:checked]:bg-brand-50">
-                          <input type="radio" name="shippingAddressId" value={a.id} defaultChecked={order.shippingAddressId ? order.shippingAddressId === a.id : i === 0} required className="mt-1" />
+                          <input type="radio" name="shippingAddressId" value={a.id} defaultChecked={order.shippingAddressId ? order.shippingAddressId === a.id : i === 0} className="mt-1" />
                           <span className="text-sm"><strong>{a.label}</strong><br />{a.attention && <>{a.attention}<br /></>}{a.line1}{a.line2 ? `, ${a.line2}` : ""}<br />{a.city}, {a.state} {a.postalCode}</span>
                         </label>
                       ))}
@@ -119,7 +119,7 @@ export default async function CheckoutPage({ params }: { params: Promise<{ id: s
                   {!shopifyConfigured() && !needsQuote && <Notice tone="amber">Test mode: Shopify isn&apos;t connected, so the next step is a simulated checkout. No card is charged.</Notice>}
                 </div>
               </Card>
-              <SubmitBar label={submitLabel} disabled={addresses.length === 0} />
+              <SubmitButton variant="accent" className="w-full py-3 text-base">{submitLabel}</SubmitButton>
             </ActionForm>
 
             <Card>
@@ -156,12 +156,4 @@ export default async function CheckoutPage({ params }: { params: Promise<{ id: s
 
 function Row({ label, value }: { label: string; value: string }) {
   return <div className="flex justify-between gap-3"><dt className="text-slate-600">{label}</dt><dd>{value}</dd></div>;
-}
-
-function SubmitBar({ label, disabled }: { label: string; disabled: boolean }) {
-  return disabled ? (
-    <p className="text-sm text-amber-700">Add a shipping address to continue.</p>
-  ) : (
-    <SubmitButton variant="accent" className="w-full py-3 text-base">{label}</SubmitButton>
-  );
 }

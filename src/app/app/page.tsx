@@ -4,27 +4,27 @@ import { db } from "@/lib/server/db";
 import { Badge, ButtonLink, Card, CardHeader, Notice, statusTone } from "@/components/ui";
 import { ORDER_STATUSES, can, formatMoney, formatOrderNumber, type OrderStatus } from "@/lib/domain";
 import { createOrder } from "@/lib/actions/orders";
+import { reorderAndPay } from "@/lib/actions/quick";
 
 export const metadata = { title: "Home" };
 
 export default async function Dashboard({ searchParams }: { searchParams: Promise<{ welcome?: string }> }) {
   const { org, user, role } = await requireOrg();
   const { welcome } = await searchParams;
-  const [logos, teams, rosterCount, addresses, orders] = await Promise.all([
+  const [logos, teams, rosterCount, orders] = await Promise.all([
     db.logo.count({ where: { organizationId: org.id, archived: false } }),
     db.team.findMany({ where: { organizationId: org.id, archived: false }, include: { _count: { select: { roster: true } } } }),
     db.rosterPlayer.count({ where: { team: { organizationId: org.id } } }),
-    db.address.count({ where: { organizationId: org.id } }),
     db.order.findMany({ where: { organizationId: org.id }, orderBy: { updatedAt: "desc" }, take: 8 }),
   ]);
   const placed = orders.some((o) => o.status !== "DRAFT");
+  const lastDone = orders.find((o) => ["PAID", "INVOICED", "PROOF_READY", "PROOF_REVISION", "IN_PRODUCTION", "SHIPPED", "DELIVERED"].includes(o.status));
 
   const steps = [
     { done: logos > 0, label: "Upload your logo", href: "/app/logos", hint: "Once — reused on every order." },
     { done: teams.length > 0, label: "Add a team", href: "/app/teams", hint: "e.g. Varsity Baseball." },
     { done: rosterCount > 0, label: "Import your roster", href: teams[0] ? `/app/teams/${teams[0].id}` : "/app/teams", hint: "Spreadsheet of names, numbers, sizes." },
-    { done: addresses > 0, label: "Add a shipping address", href: "/app/settings#addresses", hint: "Where we ship." },
-    { done: placed, label: "Place your first order", href: "#new-order", hint: "See the total and pay online." },
+    { done: placed, label: "Place your first order", href: "/order", hint: "See the total and pay online." },
   ];
   const todo = steps.filter((s) => !s.done).length;
 
@@ -56,25 +56,33 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
       )}
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2" id="new-order">
-          <CardHeader title="Start a new order" description="One order can cover every team, sport and product in your program." />
-          <div className="grid gap-4 p-5 sm:grid-cols-2">
-            <form action={createOrder} className="rounded-lg border-2 border-accent-500 bg-accent-500/5 p-4">
-              <input type="hidden" name="kit" value="1" />
-              <input type="hidden" name="name" value={`${new Date().getFullYear()} Uniforms`} />
-              {teams[0] && <input type="hidden" name="teamId" value={teams[0].id} />}
-              <p className="font-semibold">Full uniform kit</p>
-              <p className="mt-1 text-sm text-slate-600">Jersey, pants, hat and BP tee — pre-filled with your logo{teams[0] ? ` and ${teams[0].name}'s roster` : ""}.</p>
-              <button className="mt-3 rounded-md bg-accent-500 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-600">Start kit order</button>
-            </form>
-            <form action={createOrder} className="rounded-lg border border-slate-200 p-4">
-              <p className="font-semibold">Build from scratch</p>
-              <p className="mt-1 text-sm text-slate-600">Pick any products for any teams.</p>
-              <input name="name" placeholder="Order name, e.g. Spring 2027" className="mt-3" />
-              <button className="mt-2 rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-semibold hover:bg-slate-50">Create order</button>
-            </form>
-          </div>
-        </Card>
+        <div className="space-y-4 lg:col-span-2" id="new-order">
+          <Link href="/order" className="block rounded-2xl bg-accent-500 p-6 text-white shadow-sm transition hover:bg-accent-600">
+            <p className="text-2xl font-black">New order →</p>
+            <p className="mt-1 text-white/90">
+              {logos > 0 && rosterCount > 0
+                ? "Your logo and roster are saved. Pick products and pay."
+                : "Drop your logo and roster, see your price, pay."}
+            </p>
+          </Link>
+          {lastDone && (
+            <Card className="flex flex-wrap items-center justify-between gap-4 p-5">
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-wide text-slate-500">Order again</p>
+                <p className="font-semibold">{lastDone.name}</p>
+                <p className="text-sm text-slate-500">Same gear, today&apos;s prices, your current roster.</p>
+              </div>
+              <form action={reorderAndPay}>
+                <input type="hidden" name="orderId" value={lastDone.id} />
+                <button className="rounded-md bg-brand-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-800">↻ Reorder &amp; pay</button>
+              </form>
+            </Card>
+          )}
+          <form action={createOrder} className="text-sm text-slate-600">
+            <input type="hidden" name="name" value="" />
+            Ordering for several teams, or need custom placements? <button className="font-semibold text-brand-600 underline">Open the full order builder</button>
+          </form>
+        </div>
 
         <Card>
           <CardHeader title={todo ? `Getting set up (${steps.length - todo}/${steps.length})` : "You're all set"} />

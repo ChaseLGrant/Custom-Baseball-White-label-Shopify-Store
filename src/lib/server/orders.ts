@@ -87,7 +87,8 @@ export async function priceFullOrder(order: FullOrder): Promise<OrderPrice> {
 export interface SubmitInput {
   paymentMethod: "CARD" | "INVOICE";
   poNumber: string | null;
-  shippingAddressId: string;
+  /** Optional for card payments: Shopify checkout collects the address. */
+  shippingAddressId: string | null;
   notes: string | null;
   contactEmail: string;
 }
@@ -99,8 +100,11 @@ export async function submitOrder(orderId: string, ctx: { userId: string; role: 
   if (!can(ctx.role, "build_orders")) throw new Error("You don't have permission to place orders.");
 
   const org = order.organization;
-  const address = await db.address.findFirst({ where: { id: input.shippingAddressId, organizationId: org.id } });
-  if (!address) throw new Error("Choose a shipping address.");
+  const address = input.shippingAddressId
+    ? await db.address.findFirst({ where: { id: input.shippingAddressId, organizationId: org.id } })
+    : null;
+  if (input.shippingAddressId && !address) throw new Error("That shipping address no longer exists.");
+  if (!address && input.paymentMethod === "INVOICE") throw new Error("Choose a shipping address for invoice orders.");
   if (input.paymentMethod === "INVOICE") {
     if (org.termsStatus !== "APPROVED") throw new Error("Invoice terms aren't approved for your organization yet.");
     if (!input.poNumber?.trim()) throw new Error("A purchase order number is required for invoice orders.");
@@ -143,8 +147,8 @@ export async function submitOrder(orderId: string, ctx: { userId: string; role: 
         ...priceSnapshot(price),
         paymentMethod: input.paymentMethod,
         poNumber: input.poNumber?.trim() || null,
-        shippingAddressId: address.id,
-        shippingSnapshot: JSON.stringify({ ...address, company: org.name }),
+        shippingAddressId: address?.id ?? null,
+        shippingSnapshot: address ? JSON.stringify({ ...address, company: org.name }) : null,
         notes: input.notes?.trim() || null,
         taxExempt: org.taxExemptStatus === "VERIFIED",
         submittedAt: new Date(),
@@ -261,7 +265,19 @@ export async function proceedToPayment(orderId: string, contactEmail: string, ac
   return { status: "AWAITING_PAYMENT" as const, checkoutUrl };
 }
 
-export async function markPaid(orderId: string, shopify?: { orderId: string; name: string }) {
+export interface ShopifyShippingAddress {
+  company?: string | null;
+  name?: string | null;
+  address1?: string | null;
+  address2?: string | null;
+  city?: string | null;
+  province_code?: string | null;
+  zip?: string | null;
+  country_code?: string | null;
+  phone?: string | null;
+}
+
+export async function markPaid(orderId: string, shopify?: { orderId: string; name: string; shippingAddress?: ShopifyShippingAddress | null }) {
   const order = await getOrder(orderId);
   if (!order) return;
   if (order.status !== "AWAITING_PAYMENT") {
@@ -270,9 +286,25 @@ export async function markPaid(orderId: string, shopify?: { orderId: string; nam
       await addEvent(orderId, "PAYMENT", `⚠️ Payment received while order was "${order.status}" (Shopify ${shopify?.name ?? "?"}). Staff review needed.`, null, false);
     return;
   }
+  // Card customers enter their shipping address on Shopify's checkout; keep a copy for proofs and tracking.
+  const a = shopify?.shippingAddress;
+  const shippingSnapshot =
+    !order.shippingSnapshot && a?.address1
+      ? JSON.stringify({
+          company: a.company || order.organization.name,
+          attention: a.name ?? null,
+          line1: a.address1,
+          line2: a.address2 ?? null,
+          city: a.city ?? "",
+          state: a.province_code ?? "",
+          postalCode: a.zip ?? "",
+          country: a.country_code ?? "US",
+          phone: a.phone ?? null,
+        })
+      : undefined;
   await db.order.update({
     where: { id: orderId },
-    data: { paidAt: new Date(), shopifyOrderId: shopify?.orderId, shopifyOrderName: shopify?.name },
+    data: { paidAt: new Date(), shopifyOrderId: shopify?.orderId, shopifyOrderName: shopify?.name, shippingSnapshot },
   });
   await markSetupsPaid(order);
   await setStatus(orderId, "PAID", "Payment received. Our art team is preparing your proof.");
