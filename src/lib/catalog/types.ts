@@ -1,11 +1,19 @@
 // Types describing the product catalog and supplier pricing rules.
 
-export type Category = "JERSEY" | "PANTS" | "HAT" | "SHIRT" | "OUTERWEAR" | "ACCESSORY";
+export type Category =
+  | "JERSEY" | "PANTS" | "HAT" | "SHIRT" | "OUTERWEAR" | "ACCESSORY"
+  | "HELMET" | "GLOVES" | "BELT" | "SOCKS" | "BAT" | "GAMEDAY";
 
-/** Which roster size column a product reads from. */
-export type SizeField = "topSize" | "bottomSize" | "hatSize" | "none";
+/** Top-level shopping groups used for navigation. */
+export type Group = "uniforms" | "headwear" | "gear" | "gameday" | "apparel";
 
-export type DecorationMethodId = "EMBROIDERY" | "SCREEN_PRINT" | "HEAT_TRANSFER" | "TACKLE_TWILL";
+/**
+ * Which roster size column a product reads from. "mapped" converts the
+ * player's apparel size with the product's sizeMap (e.g. L -> "Adult" mitt).
+ */
+export type SizeField = "topSize" | "bottomSize" | "hatSize" | "mapped" | "none";
+
+export type DecorationMethodId = "EMBROIDERY" | "SCREEN_PRINT" | "HEAT_TRANSFER" | "TACKLE_TWILL" | "FULL_COLOR_PRINT" | "VINYL_DECAL" | "INCLUDED";
 
 export interface PriceTier {
   /** Tier applies when the order's total quantity of this product/method is >= minQty. */
@@ -48,7 +56,29 @@ export interface Product {
   sku: string;
   name: string;
   category: Category;
-  shape: "jersey" | "pants" | "hat" | "tee" | "hoodie" | "bag";
+  group: Group;
+  shape:
+    | "jersey" | "pants" | "hat" | "tee" | "hoodie" | "bag"
+    | "helmet" | "decal" | "pinetar" | "grip" | "belt" | "mitt" | "glove" | "tape" | "eyeblack" | "sleeve" | "socks";
+  /** Short selling line shown on cards. */
+  tagline: string;
+  /**
+   * "player": one per player by default (from the roster).
+   * "team": a team supply ordered by quantity (pine tar, wrist tape).
+   */
+  orderUnit: "player" | "team";
+  /** What one unit is, e.g. "pair", "roll", "stick". */
+  unitLabel?: string;
+  /** Starting quantity for team-supply items. */
+  defaultTeamQty?: number;
+  /** For sizeField "mapped": apparel size -> product size. */
+  sizeMap?: Record<string, string>;
+  /**
+   * Optional real product photos (e.g. your supplier's blank product shots),
+   * keyed by color id. When present they replace the illustrated mockup, and
+   * logos are placed using each location's box (in the 200x220 canvas).
+   */
+  photos?: Record<string, string>;
   description: string;
   features: string[];
   sports: string[];

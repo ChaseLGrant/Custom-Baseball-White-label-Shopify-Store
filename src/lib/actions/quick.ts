@@ -10,7 +10,8 @@ import { LOGO_TYPES, saveUpload } from "../server/storage";
 import { parseRosterFile } from "../server/roster-file";
 import { createDraft, reorder, submitOrder } from "../server/orders";
 import { getProduct } from "../catalog";
-import { can, lineConfigSchema, ORG_TYPES, SPORTS, type Role } from "../domain";
+import { can, ORG_TYPES, SPORTS, type Role } from "../domain";
+import { quickLineConfig } from "../quick-config";
 import { action, str } from "./util";
 import type { RosterRow } from "../roster";
 
@@ -36,6 +37,7 @@ const quickSchema = z.object({
   teamName: z.string().max(80),
   sport: z.string(),
   sizeRun: z.record(z.string(), z.number().int().min(0)),
+  teamQty: z.record(z.string(), z.number().int().min(0).max(5000)).default({}),
 });
 
 export const placeQuickOrder = action(async (_prev: unknown, fd: FormData) => {
@@ -116,26 +118,28 @@ export const placeQuickOrder = action(async (_prev: unknown, fd: FormData) => {
   const rosterCount = teamId ? (roster ? roster.players.length : await db.rosterPlayer.count({ where: { teamId } })) : 0;
   const useRoster = rosterCount > 0;
   const sizeRunTotal = Object.values(input.sizeRun).reduce((a, b) => a + b, 0);
-  if (!useRoster && sizeRunTotal === 0) throw new Error("Drop in your roster, or enter how many of each size you need.");
+  const needsPlayers = products.some((p) => p!.orderUnit === "player");
+  if (needsPlayers && !useRoster && sizeRunTotal === 0) throw new Error("Drop in your roster, or enter how many of each size you need.");
 
   // --- Order ---
   const order = await createDraft(orgId, userId, `${displayName} ${new Date().getFullYear()} uniforms`);
   await db.orderLine.createMany({
-    data: products.map((p, i) => {
-      const color = p!.colors.some((c) => c.id === input.color) ? input.color : p!.colors.some((c) => c.id === "gray") ? "gray" : p!.colors[0].id;
-      const loc = p!.locations[0];
-      const oneSize = p!.sizeField === "none";
-      const config = lineConfigSchema.parse({
-        color,
-        decorations: logoId && loc ? [{ location: loc.id, method: loc.methods[0], logoId }] : [],
-        names: useRoster && p!.category === "JERSEY" && input.personalize && !!p!.personalization.names,
-        numbers: useRoster && p!.category === "JERSEY" && input.personalize && !!p!.personalization.numbers,
-        sizing: useRoster && !oneSize ? "ROSTER" : "SIZE_RUN",
-        // One-size items (bags): one per player, or one per piece in the size run.
-        sizeRun: oneSize ? { [p!.sizes[0]]: useRoster ? rosterCount : sizeRunTotal } : useRoster ? {} : input.sizeRun,
-      });
-      return { orderId: order.id, productId: p!.id, teamId: useRoster ? teamId : null, config: JSON.stringify(config), sortOrder: i };
-    }),
+    data: products.map((p, i) => ({
+      orderId: order.id,
+      productId: p!.id,
+      teamId: useRoster ? teamId : null,
+      sortOrder: i,
+      config: JSON.stringify(
+        quickLineConfig(p!, {
+          color: input.color,
+          logoId,
+          rosterCount: useRoster ? rosterCount : 0,
+          personalize: input.personalize,
+          sizeRun: input.sizeRun,
+          teamQty: input.teamQty[p!.id],
+        }),
+      ),
+    })),
   });
 
   // Straight to payment. If anything needs attention, open the full editor instead.

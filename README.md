@@ -16,6 +16,22 @@ Self-service custom team uniform ordering for high schools, colleges, travel and
 
 The full order builder (multiple teams, custom placements, PO/invoice) is still there for athletic directors who need it, but it is never required.
 
+## What teams can customize
+
+| Group | Products |
+|---|---|
+| Uniforms | Full-button jerseys, piped pants, **custom belts**, **knit team socks**, sublimated jerseys (quote) |
+| Helmets & caps | **Custom batting helmets** (logo decals + back numbers), **helmet decal kits**, stretch-fit caps |
+| Player gear | **Custom batting gloves**, **sliding mitts**, **compression arm sleeves**, equipment backpacks |
+| Game-day extras | **Printed bat grips**, **custom-label pine tar**, **printed wrist tape**, **custom eye black** (logo or player numbers) |
+| Practice & travel | BP tees, fleece hoodies |
+
+Sizes for gloves, helmets, belts, mitts and socks are worked out from each player's roster size. Team supplies (pine tar, wrist tape) are ordered by quantity.
+
+### Product images
+
+Every product has a detailed mockup drawn in the team's color with their real logo on it. To use **real product photos** instead, add your supplier's blank product shots to `photos` on a product in `src/lib/catalog/index.ts` (one image per color). The customer's logo is then placed on the photo automatically. See [docs/CATALOG.md](docs/CATALOG.md).
+
 ---
 
 ## Quick start (local)

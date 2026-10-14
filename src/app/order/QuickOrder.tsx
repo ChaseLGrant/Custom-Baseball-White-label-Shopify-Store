@@ -1,11 +1,12 @@
 "use client";
-// One-screen ordering: drop logo, drop roster, (pick products), pay.
+// One-screen ordering: drop logo, drop roster, pick gear, pay.
 import Link from "next/link";
 import { useActionState, useMemo, useState, useTransition } from "react";
-import { CATALOG, UNIFORM_KIT_PRODUCT_IDS, getProduct, type Product } from "@/lib/catalog";
+import { CATALOG, GROUPS, UNIFORM_KIT_PRODUCT_IDS, getProduct, lowestUnitCents, type Product } from "@/lib/catalog";
 import { ORG_TYPES, formatMoney, lineConfigSchema } from "@/lib/domain";
 import { priceOrder } from "@/lib/pricing";
 import { buildLineItems, sizeBreakdown, type RosterPlayerLike } from "@/lib/roster";
+import { pickColor, quickLineConfig } from "@/lib/quick-config";
 import { placeQuickOrder, previewRoster } from "@/lib/actions/quick";
 import { ProductPreview } from "@/components/ProductPreview";
 import { cx } from "@/components/ui";
@@ -17,14 +18,17 @@ interface Props {
   logos: { id: string; name: string; url: string }[];
   teams: { id: string; name: string; roster: RosterPlayerLike[] }[];
   setupsPaid: Record<string, string[]>;
+  initialAdd: string | null;
 }
 
-const COLORS = CATALOG.products.find((p) => p.id === "jersey-full-button")!.colors;
+const COLORS = getProduct("jersey-full-button")!.colors;
 const OPTIONS = CATALOG.products.filter((p) => p.pricing.status === "VERIFIED");
 const ADULT_SIZES = ["YS", "YM", "YL", "YXL", "S", "M", "L", "XL", "2XL", "3XL"];
 const NEW_LOGO = "new-logo";
 
-export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid }: Props) {
+export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid, initialAdd }: Props) {
+  const added = initialAdd && OPTIONS.some((p) => p.id === initialAdd) ? initialAdd : null;
+
   // Logo: a saved one, or a newly dropped file.
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -40,7 +44,11 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid 
   const [sizeRun, setSizeRun] = useState<Record<string, number>>({});
   const [teamName, setTeamName] = useState("");
 
-  const [selected, setSelected] = useState<string[]>(UNIFORM_KIT_PRODUCT_IDS);
+  // Gear
+  const [selected, setSelected] = useState<string[]>(added && !UNIFORM_KIT_PRODUCT_IDS.includes(added) ? [...UNIFORM_KIT_PRODUCT_IDS, added] : UNIFORM_KIT_PRODUCT_IDS);
+  const [focus, setFocus] = useState<string>(added ?? UNIFORM_KIT_PRODUCT_IDS[0]);
+  const [tab, setTab] = useState<Product["group"]>(added ? getProduct(added)!.group : "uniforms");
+  const [teamQty, setTeamQty] = useState<Record<string, number>>({});
   const [color, setColor] = useState("navy");
   const [personalize, setPersonalize] = useState(true);
 
@@ -56,35 +64,29 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid 
     [logos, logoUrl],
   );
 
-  // Same configuration the server will build, priced live.
+  // Exactly what the server will build, priced live.
   const lines = useMemo(
     () =>
       selected.map((id) => {
         const p = getProduct(id)!;
-        const oneSize = p.sizeField === "none";
-        const runTotal = Object.values(sizeRun).reduce((a, b) => a + b, 0);
-        const config = lineConfigSchema.parse({
-          color: p.colors.some((c) => c.id === color) ? color : p.colors.some((c) => c.id === "gray") ? "gray" : p.colors[0].id,
-          decorations: logoId && p.locations[0] ? [{ location: p.locations[0].id, method: p.locations[0].methods[0], logoId }] : [],
-          names: players.length > 0 && p.category === "JERSEY" && personalize && hasNames && !!p.personalization.names,
-          numbers: players.length > 0 && p.category === "JERSEY" && personalize && !!p.personalization.numbers,
-          sizing: players.length > 0 && !oneSize ? "ROSTER" : "SIZE_RUN",
-          sizeRun: oneSize ? { [p.sizes[0]]: players.length || runTotal } : players.length ? {} : sizeRun,
-        });
+        const config = quickLineConfig(p, { color, logoId, rosterCount: players.length, personalize: personalize && hasNames, sizeRun, teamQty: teamQty[id] });
         return { key: id, productId: id, config, items: buildLineItems(p, config, players) };
       }),
-    [selected, color, logoId, players, personalize, hasNames, sizeRun],
+    [selected, color, logoId, players, personalize, hasNames, sizeRun, teamQty],
   );
   const price = useMemo(() => priceOrder({ lines, setupsPaid }), [lines, setupsPaid]);
   const errors = price.issues.filter((i) => i.level === "error" && !/Choose a logo/.test(i.message));
+  const needsPlayers = selected.some((id) => getProduct(id)!.orderUnit === "player");
 
   const missing = !logoId
     ? "Add your logo"
-    : players.length === 0 && price.totalQuantity === 0
-      ? "Add your roster or sizes"
+    : needsPlayers && players.length === 0 && !Object.values(sizeRun).some(Boolean)
+      ? "Add your roster"
       : selected.length === 0
-        ? "Pick a product"
-        : errors[0]?.message ?? null;
+        ? "Pick your gear"
+        : errors[0]
+          ? "Fix: " + errors[0].message
+          : null;
 
   async function onRoster(file: File | undefined) {
     if (!file) return;
@@ -125,12 +127,21 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid 
         teamName: teamName || savedTeam?.name || orgName || "",
         sport: "BASEBALL",
         sizeRun: useSizes ? sizeRun : {},
+        teamQty,
       }),
     );
     startTransition(() => formAction(fd));
   }
 
-  const toggle = (id: string) => setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+  function toggle(id: string) {
+    setFocus(id);
+    setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+  }
+
+  const focusProduct = getProduct(focus)!;
+  const focusConfig = lines.find((l) => l.key === focus)?.config;
+  const sample = players.find((p) => p.name || p.number);
+  const payLabel = pending ? "Opening checkout…" : missing ?? `Pay ${formatMoney(price.totalCents)}`;
 
   return (
     <form
@@ -138,158 +149,203 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid 
         e.preventDefault();
         submit(e.currentTarget);
       }}
-      className="mx-auto max-w-3xl space-y-5 px-4 pb-40 pt-8"
+      className="mx-auto grid max-w-7xl gap-8 px-5 pb-36 pt-10 lg:grid-cols-[1fr_400px] lg:pb-16"
     >
-      <div className="text-center">
-        <h1 className="text-3xl font-black tracking-tight sm:text-4xl">Order your team&apos;s uniforms</h1>
-        <p className="mt-2 text-slate-600">Drop your logo and roster. We&apos;ll do the rest.</p>
+      <div className="min-w-0 space-y-5">
+        <div>
+          <h1 className="font-display text-5xl sm:text-6xl">Order your team&apos;s gear</h1>
+          <p className="mt-2 text-lg text-slate-500">Drop your logo and roster. We&apos;ll put them on everything.</p>
+        </div>
+
+        {/* 1. Logo */}
+        <Step n={1} title="Your logo" done={!!logoId}>
+          {logoFile ? (
+            <div className="flex items-center gap-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={logoUrl!} alt="Your logo" className="h-20 w-20 rounded-2xl bg-white object-contain p-2 ring-1 ring-slate-200" />
+              <div>
+                <p className="font-semibold">{logoFile.name}</p>
+                <button type="button" className="text-sm font-medium text-slate-500 underline hover:text-slate-900" onClick={() => { setLogoFile(null); setLogoUrl(null); }}>Change</button>
+              </div>
+            </div>
+          ) : logos.length > 0 ? (
+            <div className="flex flex-wrap items-center gap-3">
+              {logos.map((l) => (
+                <button type="button" key={l.id} onClick={() => setSavedLogoId(l.id)} aria-label={`Use ${l.name}`} aria-pressed={savedLogoId === l.id}
+                  className={cx("grid h-20 w-20 place-items-center rounded-2xl bg-white p-2 transition", savedLogoId === l.id ? "ring-2 ring-slate-900" : "ring-1 ring-slate-200 hover:ring-slate-400")}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={l.url} alt={l.name} className="max-h-full max-w-full object-contain" />
+                </button>
+              ))}
+              <DropZone small accept=".svg,.png,.jpg,.jpeg" label="+ New logo" onFile={onLogo} />
+            </div>
+          ) : (
+            <DropZone accept=".svg,.png,.jpg,.jpeg" label="Drop your logo here" hint="or tap to choose · PNG, JPG or SVG · saved for every future order" onFile={onLogo} />
+          )}
+        </Step>
+
+        {/* 2. Roster */}
+        <Step n={2} title="Your roster" done={players.length > 0 || (useSizes && Object.values(sizeRun).some(Boolean))} optional={!needsPlayers}>
+          {useSizes ? (
+            <div>
+              <p className="mb-2 text-sm text-slate-600">How many of each size?</p>
+              <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
+                {ADULT_SIZES.map((s) => (
+                  <label key={s} className="text-center text-xs font-semibold text-slate-500">
+                    {s}
+                    <input type="number" min={0} inputMode="numeric" placeholder="0" value={sizeRun[s] || ""}
+                      onChange={(e) => setSizeRun({ ...sizeRun, [s]: Math.max(0, Math.floor(Number(e.target.value) || 0)) })}
+                      className="mt-1 !px-1 !py-2 text-center" />
+                  </label>
+                ))}
+              </div>
+              <button type="button" className="mt-3 text-sm font-medium text-slate-500 underline hover:text-slate-900" onClick={() => setUseSizes(false)}>Use a roster spreadsheet instead</button>
+            </div>
+          ) : players.length > 0 ? (
+            <div>
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-semibold text-emerald-700">✓ {players.length} players{newPlayers ? "" : ` · ${savedTeam?.name}`}</span>
+                {teams.filter((t) => t.roster.length).length > 1 && !newPlayers && (
+                  <select value={teamId ?? ""} onChange={(e) => setTeamId(e.target.value)} className="!w-auto !rounded-full !py-1.5" aria-label="Team">
+                    {teams.filter((t) => t.roster.length).map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
+                  </select>
+                )}
+                <DropZone inline accept=".csv,.xlsx,.tsv,.txt" label="Upload a different roster" onFile={onRoster} />
+              </div>
+              <p className="mt-3 text-sm text-slate-500">
+                Sizes: {sizeBreakdown(getProduct("jersey-full-button")!, buildLineItems(getProduct("jersey-full-button")!, lineConfigSchema.parse({ color: "navy" }), players)).map(([s, q]) => `${s}×${q}`).join(" · ")}
+              </p>
+              {rosterProblems.length > 0 && <p className="mt-1 text-sm text-amber-700">Check: {rosterProblems.slice(0, 3).join(" ")}</p>}
+              {newPlayers && !savedTeam && (
+                <input value={teamName} onChange={(e) => setTeamName(e.target.value)} placeholder="Team name (optional) — e.g. Varsity" className="mt-3 sm:!w-80" aria-label="Team name" />
+              )}
+            </div>
+          ) : (
+            <>
+              <DropZone accept=".csv,.xlsx,.tsv,.txt" label={rosterLoading ? "Reading your roster…" : "Drop your roster spreadsheet"}
+                hint={<>Excel or CSV with names, numbers & sizes — any column names work · <a href="/samples/roster-template.csv" download className="underline" onClick={(e) => e.stopPropagation()}>template</a></>}
+                onFile={onRoster} />
+              {rosterProblems.length > 0 && <p className="mt-2 text-sm text-red-600">{rosterProblems.join(" ")}</p>}
+              <button type="button" className="mt-3 text-sm font-medium text-slate-500 underline hover:text-slate-900" onClick={() => setUseSizes(true)}>No roster? Just enter sizes</button>
+            </>
+          )}
+        </Step>
+
+        {/* 3. Gear */}
+        <Step n={3} title="Pick your gear" done={selected.length > 0}>
+          <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+            {GROUPS.map((g) => {
+              const count = selected.filter((id) => getProduct(id)!.group === g.id).length;
+              return (
+                <button type="button" key={g.id} onClick={() => setTab(g.id)}
+                  className={cx("whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition", tab === g.id ? "bg-brand-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200")}>
+                  {g.label}{count > 0 && <span className={cx("ml-1.5 rounded-full px-1.5 text-xs", tab === g.id ? "bg-accent-500" : "bg-white text-slate-900")}>{count}</span>}
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {OPTIONS.filter((p) => p.group === tab).map((p) => (
+              <GearTile key={p.id} product={p} on={selected.includes(p.id)} onToggle={() => toggle(p.id)} color={color} logoId={logoId} logoUrls={logoUrls}
+                priced={price.lines.find((l) => l.key === p.id)}
+                qty={teamQty[p.id] ?? p.defaultTeamQty ?? p.minQty}
+                onQty={(q) => setTeamQty({ ...teamQty, [p.id]: q })} />
+            ))}
+          </div>
+          <div className="mt-5 flex flex-wrap items-center gap-2">
+            <span className="mr-1 text-sm font-semibold text-slate-700">Team color</span>
+            {COLORS.map((c) => (
+              <button key={c.id} type="button" title={c.name} aria-label={c.name} aria-pressed={color === c.id} onClick={() => setColor(c.id)}
+                className={cx("h-8 w-8 rounded-full ring-offset-2 transition", color === c.id ? "ring-2 ring-slate-900" : "ring-1 ring-black/10 hover:scale-110")} style={{ background: c.hex }} />
+            ))}
+          </div>
+          {hasNames && (
+            <label className="mt-4 flex items-center gap-2 text-sm font-normal text-slate-700">
+              <input type="checkbox" checked={personalize} onChange={(e) => setPersonalize(e.target.checked)} />
+              Player names &amp; numbers on jerseys, numbers on helmets (from your roster)
+            </label>
+          )}
+        </Step>
+
+        {/* 4. Account (new coaches only) */}
+        {!signedIn && (
+          <Step n={4} title="Where should we send your proof?" done={false}>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <input name="name" placeholder="Your name" autoComplete="name" required aria-label="Your name" />
+              <input name="email" type="email" placeholder="Email" autoComplete="email" required aria-label="Email" />
+              <input name="orgName" placeholder="School or organization" required aria-label="School or organization" />
+              <input name="password" type="password" placeholder="Create a password" autoComplete="new-password" minLength={8} required aria-label="Create a password" />
+              <select name="orgType" defaultValue="HIGH_SCHOOL" aria-label="Organization type" className="sm:col-span-2">
+                {Object.entries(ORG_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+              </select>
+            </div>
+            <p className="mt-3 text-xs text-slate-500">Ordered before? <Link href="/login?next=/order" className="font-semibold underline">Sign in</Link> and your logo & roster fill in automatically.</p>
+          </Step>
+        )}
+        <p className="text-center text-xs text-slate-400">
+          You approve a production proof before anything is made. Multiple teams, custom placements or a purchase order?{" "}
+          <Link href={signedIn ? "/app" : "/signup"} className="underline">Use the full order builder</Link>.
+        </p>
       </div>
 
-      {/* 1. Logo */}
-      <Step n={1} title="Your logo" done={!!logoId}>
-        {logoId && !logoFile && logos.length > 0 ? (
-          <div className="flex flex-wrap items-center gap-3">
-            {logos.map((l) => (
-              <button
-                type="button"
-                key={l.id}
-                onClick={() => setSavedLogoId(l.id)}
-                className={cx("grid h-20 w-20 place-items-center rounded-lg border-2 bg-white p-1", savedLogoId === l.id ? "border-brand-600 ring-2 ring-brand-100" : "border-slate-200")}
-                aria-label={`Use ${l.name}`}
-                aria-pressed={savedLogoId === l.id}
-              >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={l.url} alt={l.name} className="max-h-full max-w-full object-contain" />
-              </button>
-            ))}
-            <DropZone small accept=".svg,.png,.jpg,.jpeg" label="+ New logo" onFile={onLogo} />
+      {/* Order summary (desktop) */}
+      <aside className="hidden lg:block">
+        <div className="sticky top-24 overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200/80 shadow-xl shadow-slate-900/5">
+          <div className="studio px-8 pb-4 pt-6">
+            <ProductPreview product={focusProduct} colorId={focusConfig?.color ?? pickColor(focusProduct, color)} decorations={focusConfig?.decorations ?? []} logoUrls={logoUrls}
+              names={focusConfig?.names} numbers={focusConfig?.numbers} sampleName={sample?.name.split(" ").at(-1) || undefined} sampleNumber={sample?.number || undefined} />
+            <p className="mt-1 text-center text-sm font-semibold">{focusProduct.name}</p>
           </div>
-        ) : logoFile ? (
-          <div className="flex items-center gap-4">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={logoUrl!} alt="Your logo" className="h-20 w-20 rounded-lg border border-slate-200 bg-white object-contain p-1" />
-            <span className="text-sm text-slate-600">{logoFile.name}</span>
-            <button type="button" className="text-sm font-medium text-brand-600" onClick={() => { setLogoFile(null); setLogoUrl(null); }}>Change</button>
-          </div>
-        ) : (
-          <DropZone accept=".svg,.png,.jpg,.jpeg" label="Drop your logo here, or tap to choose" hint="PNG, JPG or SVG. Saved for every future order." onFile={onLogo} />
-        )}
-      </Step>
-
-      {/* 2. Roster */}
-      <Step n={2} title="Your roster" done={players.length > 0 || (useSizes && price.totalQuantity > 0)}>
-        {useSizes ? (
-          <div>
-            <p className="mb-2 text-sm text-slate-600">How many of each size?</p>
-            <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
-              {ADULT_SIZES.map((s) => (
-                <label key={s} className="text-center text-xs font-medium text-slate-600">
-                  {s}
-                  <input
-                    type="number" min={0} inputMode="numeric" placeholder="0" value={sizeRun[s] || ""}
-                    onChange={(e) => setSizeRun({ ...sizeRun, [s]: Math.max(0, Math.floor(Number(e.target.value) || 0)) })}
-                    className="mt-0.5 !px-1 !py-1 text-center"
-                  />
-                </label>
+          <div className="p-6">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">Your order</p>
+            <ul className="mt-3 max-h-56 space-y-2 overflow-y-auto text-sm">
+              {price.lines.map((l) => {
+                const p = getProduct(l.productId)!;
+                return (
+                  <li key={l.key}>
+                    <button type="button" onClick={() => setFocus(l.key)} className="flex w-full justify-between gap-3 text-left hover:text-accent-600">
+                      <span className="text-slate-600">{l.quantity ? `${l.quantity} × ` : ""}{l.productName}</span>
+                      <span className={l.quantity ? "font-semibold" : "text-slate-400"}>{l.quantity ? formatMoney(l.lineTotalCents) : `from ${formatMoney(lowestUnitCents(p) ?? 0)}`}</span>
+                    </button>
+                  </li>
+                );
+              })}
+              {price.totalQuantity === 0 && selected.length > 0 && <li className="pt-1 text-xs text-slate-400">Add your roster to see your exact total.</li>}
+              {price.setupFees.filter((f) => f.cents > 0).map((f) => (
+                <li key={f.logoId + f.method} className="flex justify-between gap-3"><span className="text-slate-600">{f.methodLabel} setup (one time)</span><span className="font-semibold">{formatMoney(f.cents)}</span></li>
               ))}
-            </div>
-            <button type="button" className="mt-2 text-sm font-medium text-brand-600" onClick={() => setUseSizes(false)}>Use a roster spreadsheet instead</button>
-          </div>
-        ) : players.length > 0 ? (
-          <div className="text-sm">
-            <p className="font-semibold text-emerald-700">✓ {players.length} players{newPlayers ? "" : ` from ${savedTeam?.name}`}</p>
-            <p className="mt-1 text-slate-600">
-              Sizes: {sizeBreakdown(getProduct("jersey-full-button")!, buildLineItems(getProduct("jersey-full-button")!, lineConfigSchema.parse({ color: "navy" }), players)).map(([s, q]) => `${s}×${q}`).join(", ")}
-            </p>
-            {rosterProblems.length > 0 && <p className="mt-1 text-amber-700">Check: {rosterProblems.slice(0, 3).join(" ")}</p>}
-            <div className="mt-2 flex flex-wrap gap-4">
-              {teams.length > 1 && !newPlayers && (
-                <select value={teamId ?? ""} onChange={(e) => setTeamId(e.target.value)} className="!w-auto !py-1" aria-label="Team">
-                  {teams.filter((t) => t.roster.length).map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
-                </select>
+              {price.totalQuantity > 0 && (
+                <li className="flex justify-between gap-3"><span className="text-slate-600">Shipping</span><span className="font-semibold">{price.shippingCents ? formatMoney(price.shippingCents) : "Free"}</span></li>
               )}
-              <DropZone small accept=".csv,.xlsx,.tsv,.txt" label="Upload a different roster" onFile={onRoster} />
+            </ul>
+            <div className="mt-4 flex items-baseline justify-between border-t border-slate-100 pt-4">
+              <span className="font-semibold">Total</span>
+              <span className="font-display text-4xl">{formatMoney(price.totalCents)}</span>
             </div>
-            {newPlayers && !savedTeam && (
-              <input value={teamName} onChange={(e) => setTeamName(e.target.value)} placeholder="Team name (optional), e.g. Varsity" className="mt-3 sm:!w-72" aria-label="Team name" />
-            )}
+            <p className="text-right text-xs text-slate-400">+ sales tax unless tax-exempt</p>
+            <button type="submit" disabled={!!missing || pending}
+              className="mt-5 w-full rounded-full bg-accent-500 px-6 py-4 text-base font-bold text-white shadow-[0_8px_24px_-8px_rgba(255,90,31,.7)] transition hover:bg-accent-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:shadow-none">
+              {payLabel}{!missing && !pending && " →"}
+            </button>
+            {state.error && <p role="alert" className="mt-2 text-sm text-red-600">{state.error}</p>}
+            <p className="mt-3 text-center text-xs text-slate-400">Secure checkout by Shopify</p>
           </div>
-        ) : (
-          <>
-            <DropZone
-              accept=".csv,.xlsx,.tsv,.txt"
-              label={rosterLoading ? "Reading your roster…" : "Drop your roster spreadsheet here, or tap to choose"}
-              hint={<>Excel or CSV with names, numbers and sizes. Any column names work. <a href="/samples/roster-template.csv" download className="underline" onClick={(e) => e.stopPropagation()}>Template</a></>}
-              onFile={onRoster}
-            />
-            {rosterProblems.length > 0 && <p className="mt-2 text-sm text-red-700">{rosterProblems.join(" ")}</p>}
-            <button type="button" className="mt-2 text-sm font-medium text-brand-600" onClick={() => setUseSizes(true)}>No roster? Just enter sizes</button>
-          </>
-        )}
-      </Step>
-
-      {/* 3. Products */}
-      <Step n={3} title="What you need" done={selected.length > 0}>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          {OPTIONS.map((p) => (
-            <ProductTile key={p.id} product={p} on={selected.includes(p.id)} onClick={() => toggle(p.id)} color={color} logoId={logoId} logoUrls={logoUrls}
-              priced={price.lines.find((l) => l.key === p.id)} />
-          ))}
         </div>
-        <div className="mt-4 flex flex-wrap items-center gap-2">
-          <span className="text-sm font-medium text-slate-700">Team color:</span>
-          {COLORS.map((c) => (
-            <button key={c.id} type="button" title={c.name} aria-label={c.name} aria-pressed={color === c.id} onClick={() => setColor(c.id)}
-              className={cx("h-8 w-8 rounded-full border-2", color === c.id ? "border-brand-600 ring-2 ring-brand-100" : "border-slate-300")} style={{ background: c.hex }} />
-          ))}
-        </div>
-        {hasNames && selected.some((id) => getProduct(id)?.category === "JERSEY") && (
-          <label className="mt-3 flex items-center gap-2 text-sm font-normal">
-            <input type="checkbox" checked={personalize} onChange={(e) => setPersonalize(e.target.checked)} />
-            Put player names &amp; numbers on the jerseys (from your roster)
-          </label>
-        )}
-      </Step>
+      </aside>
 
-      {/* 4. Account (new coaches only) */}
-      {!signedIn && (
-        <Step n={4} title="Where should we send your proof?" done={false}>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <input name="name" placeholder="Your name" autoComplete="name" required aria-label="Your name" />
-            <input name="email" type="email" placeholder="Email" autoComplete="email" required aria-label="Email" />
-            <input name="orgName" placeholder="School or organization" required aria-label="School or organization" />
-            <input name="password" type="password" placeholder="Create a password" autoComplete="new-password" minLength={8} required aria-label="Create a password" />
-            <select name="orgType" defaultValue="HIGH_SCHOOL" aria-label="Organization type" className="sm:col-span-2">
-              {Object.entries(ORG_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-            </select>
-          </div>
-          <p className="mt-2 text-xs text-slate-500">Already ordered with us? <Link href="/login?next=/order" className="font-medium underline">Sign in</Link> and your logo and roster fill in automatically.</p>
-        </Step>
-      )}
-
-      <p className="text-center text-xs text-slate-500">
-        You&apos;ll approve a proof before anything is made. Want more control (placements, multiple teams, PO / invoice)?{" "}
-        <Link href={signedIn ? "/app" : "/signup"} className="underline">Use the full order builder</Link>.
-      </p>
-
-      {/* Sticky pay bar */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-4 py-3">
+      {/* Pay bar (phones & tablets) */}
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 backdrop-blur lg:hidden">
+        <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-5 py-3">
           <div>
-            <p className="text-2xl font-black leading-tight">{formatMoney(price.totalCents)}</p>
-            <p className="text-xs text-slate-500">
-              {price.totalQuantity} pieces{price.shippingCents === 0 && price.totalQuantity > 0 ? " · free shipping" : ""} · + tax
-            </p>
+            <p className="font-display text-3xl">{formatMoney(price.totalCents)}</p>
+            <p className="text-xs text-slate-500">{price.totalQuantity} items · + tax</p>
           </div>
           <div className="text-right">
-            <button
-              type="submit"
-              disabled={!!missing || pending}
-              className="rounded-lg bg-accent-500 px-6 py-3 text-base font-bold text-white shadow-sm hover:bg-accent-600 disabled:cursor-not-allowed disabled:bg-slate-300"
-            >
-              {pending ? "Opening checkout…" : missing ? missing : `Pay ${formatMoney(price.totalCents)} →`}
+            <button type="submit" disabled={!!missing || pending}
+              className="rounded-full bg-accent-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-accent-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500">
+              {payLabel}
             </button>
-            {state.error && <p role="alert" className="mt-1 max-w-xs text-xs text-red-700">{state.error}</p>}
+            {state.error && <p role="alert" className="mt-1 max-w-xs text-xs text-red-600">{state.error}</p>}
           </div>
         </div>
       </div>
@@ -297,19 +353,20 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid 
   );
 }
 
-function Step({ n, title, done, children }: { n: number; title: string; done: boolean; children: React.ReactNode }) {
+function Step({ n, title, done, optional, children }: { n: number; title: string; done: boolean; optional?: boolean; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <h2 className="mb-3 flex items-center gap-3 text-lg font-bold">
-        <span className={cx("grid h-7 w-7 place-items-center rounded-full text-sm", done ? "bg-emerald-500 text-white" : "bg-brand-50 text-brand-700")}>{done ? "✓" : n}</span>
+    <section className="rounded-3xl bg-white p-6 ring-1 ring-slate-200/80 sm:p-7">
+      <h2 className="mb-4 flex items-center gap-3 text-lg font-bold">
+        <span className={cx("grid h-8 w-8 place-items-center rounded-full text-sm font-bold transition", done ? "bg-emerald-500 text-white" : "bg-slate-900 text-white")}>{done ? "✓" : n}</span>
         {title}
+        {optional && <span className="text-sm font-normal text-slate-400">optional</span>}
       </h2>
       {children}
     </section>
   );
 }
 
-function DropZone({ label, hint, accept, onFile, small }: { label: string; hint?: React.ReactNode; accept: string; onFile: (f: File | undefined) => void; small?: boolean }) {
+function DropZone({ label, hint, accept, onFile, small, inline }: { label: string; hint?: React.ReactNode; accept: string; onFile: (f: File | undefined) => void; small?: boolean; inline?: boolean }) {
   const [over, setOver] = useState(false);
   return (
     <label
@@ -317,37 +374,46 @@ function DropZone({ label, hint, accept, onFile, small }: { label: string; hint?
       onDragLeave={() => setOver(false)}
       onDrop={(e) => { e.preventDefault(); setOver(false); onFile(e.dataTransfer.files[0]); }}
       className={cx(
-        "flex cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed text-center transition",
-        small ? "h-20 px-4 text-sm" : "px-6 py-10",
-        over ? "border-brand-600 bg-brand-50" : "border-slate-300 hover:border-brand-600 hover:bg-slate-50",
+        "flex cursor-pointer flex-col items-center justify-center text-center transition",
+        inline ? "rounded-full px-3 py-1 text-sm font-medium text-slate-500 underline hover:text-slate-900"
+          : cx("rounded-2xl border-2 border-dashed", small ? "h-20 px-4 text-sm" : "px-6 py-12", over ? "border-accent-500 bg-accent-500/5" : "border-slate-200 bg-slate-50/60 hover:border-slate-400 hover:bg-white"),
       )}
     >
       <input type="file" accept={accept} className="sr-only" onChange={(e) => onFile(e.target.files?.[0])} />
-      <span className={cx("font-semibold text-brand-700", !small && "text-base")}>{label}</span>
+      {!inline && !small && <span className="mb-2 grid h-11 w-11 place-items-center rounded-full bg-white text-xl shadow-sm ring-1 ring-slate-200">↑</span>}
+      <span className={cx(!inline && "font-semibold text-slate-900", !small && !inline && "text-base")}>{label}</span>
       {hint && <span className="mt-1 text-xs font-normal text-slate-500">{hint}</span>}
     </label>
   );
 }
 
-function ProductTile({ product, on, onClick, color, logoId, logoUrls, priced }: {
-  product: Product; on: boolean; onClick: () => void; color: string; logoId: string | null; logoUrls: Record<string, string>;
-  priced?: { effectiveUnitCents: number; quantity: number };
+function GearTile({ product, on, onToggle, color, logoId, logoUrls, priced, qty, onQty }: {
+  product: Product; on: boolean; onToggle: () => void; color: string; logoId: string | null; logoUrls: Record<string, string>;
+  priced?: { effectiveUnitCents: number; quantity: number }; qty: number; onQty: (q: number) => void;
 }) {
-  const c = product.colors.some((x) => x.id === color) ? color : product.colors.some((x) => x.id === "gray") ? "gray" : product.colors[0].id;
   const loc = product.locations[0];
+  const low = lowestUnitCents(product);
+  const team = product.orderUnit === "team";
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-pressed={on}
-      className={cx("relative rounded-xl border-2 p-2 text-left transition", on ? "border-brand-600 bg-brand-50/60" : "border-slate-200 opacity-70 hover:opacity-100")}
-    >
-      <span className={cx("absolute right-2 top-2 grid h-6 w-6 place-items-center rounded-full text-xs font-bold", on ? "bg-brand-600 text-white" : "border-2 border-slate-300 bg-white")}>{on ? "✓" : ""}</span>
-      <ProductPreview product={product} colorId={c} decorations={logoId && loc ? [{ location: loc.id, logoId }] : []} logoUrls={logoUrls} className="[&_figcaption]:hidden [&>figure:nth-child(2)]:hidden" />
-      <span className="mt-1 block text-sm font-semibold leading-tight">{product.name}</span>
-      <span className="block text-xs text-slate-500">
-        {on && priced?.quantity ? `${formatMoney(priced.effectiveUnitCents)} each` : `min ${product.minQty}`}
-      </span>
-    </button>
+    <div className={cx("relative overflow-hidden rounded-2xl transition", on ? "bg-white ring-2 ring-slate-900" : "bg-white ring-1 ring-slate-200 hover:ring-slate-400")}>
+      <button type="button" onClick={onToggle} aria-pressed={on} className="block w-full text-left">
+        <div className="studio p-3">
+          <ProductPreview product={product} colorId={pickColor(product, color)} single decorations={logoId && loc ? [{ location: loc.id, logoId }] : []} logoUrls={logoUrls}
+            className="mx-auto w-[88%]" />
+        </div>
+        <span className={cx("absolute right-2.5 top-2.5 grid h-7 w-7 place-items-center rounded-full text-sm font-bold transition", on ? "bg-slate-900 text-white" : "bg-white text-slate-400 ring-1 ring-slate-200")}>{on ? "✓" : "+"}</span>
+        <span className="block px-3 pt-2 text-sm font-semibold leading-tight">{product.name}</span>
+        <span className="block px-3 pb-3 text-xs text-slate-500">
+          {on && priced?.quantity ? `${formatMoney(priced.effectiveUnitCents)} ${product.unitLabel ? "/ " + product.unitLabel : "each"}` : `from ${formatMoney(low ?? 0)} · min ${product.minQty}`}
+        </span>
+      </button>
+      {on && team && (
+        <div className="flex items-center justify-between border-t border-slate-100 px-3 py-2">
+          <button type="button" aria-label="Fewer" onClick={() => onQty(Math.max(product.minQty, qty - (product.minQty >= 12 ? 12 : 1)))} className="grid h-7 w-7 place-items-center rounded-full bg-slate-100 font-bold hover:bg-slate-200">–</button>
+          <span className="text-sm font-semibold">{qty} {product.unitLabel}s</span>
+          <button type="button" aria-label="More" onClick={() => onQty(qty + (product.minQty >= 12 ? 12 : 1))} className="grid h-7 w-7 place-items-center rounded-full bg-slate-100 font-bold hover:bg-slate-200">+</button>
+        </div>
+      )}
+    </div>
   );
 }

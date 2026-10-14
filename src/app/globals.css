@@ -1,31 +1,54 @@
 @import "tailwindcss";
 
 @theme {
-  --color-brand-50: #eef3fa;
-  --color-brand-100: #d6e2f2;
-  --color-brand-600: #1d4f91;
-  --color-brand-700: #163d72;
-  --color-brand-800: #0f2d55;
-  --color-brand-900: #0b2545;
-  --color-accent-500: #e2492f;
-  --color-accent-600: #c8381f;
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Ink (near-black) scale for text, dark surfaces and primary buttons. */
+  --color-brand-50: #eef2ff;
+  --color-brand-100: #dfe6ff;
+  --color-brand-200: #c3cffd;
+  --color-brand-600: #3157f5;
+  --color-brand-700: #2443c9;
+  --color-brand-800: #1b1f27;
+  --color-brand-900: #0c0e13;
+  /* Electric orange: the one action color. */
+  --color-accent-400: #ff7a45;
+  --color-accent-500: #ff5a1f;
+  --color-accent-600: #e8480f;
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-display: "Barlow Condensed", "Inter Variable", ui-sans-serif, sans-serif;
 }
 
 body {
-  @apply bg-slate-50 text-slate-900 antialiased;
+  @apply bg-[#f6f7f9] text-slate-900 antialiased;
+  font-feature-settings: "cv11", "ss01";
 }
 
-/* Form controls get consistent, accessible styling by default. */
+/* Big athletic headlines */
+.font-display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 0.92;
+}
+
+/* Soft studio backdrop behind product mockups */
+.studio {
+  background: radial-gradient(120% 90% at 50% 0%, #ffffff 0%, #eef1f5 55%, #e3e7ee 100%);
+}
+.studio-dark {
+  background: radial-gradient(120% 90% at 50% 10%, #2a2f3a 0%, #14171d 60%, #0c0e13 100%);
+}
+
 @layer base {
   input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="tel"],
   input:not([type]), select, textarea {
-    @apply w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm
-      focus:border-brand-600 focus:ring-2 focus:ring-brand-100 focus:outline-none disabled:bg-slate-100;
+    @apply w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-[0_1px_2px_rgba(16,24,40,.04)]
+      transition placeholder:text-slate-400 focus:border-brand-600 focus:ring-4 focus:ring-brand-100 focus:outline-none disabled:bg-slate-100;
   }
+  input[type="checkbox"], input[type="radio"] { accent-color: var(--color-accent-500); }
   input[type="file"] {
-    @apply block w-full text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-brand-50
-      file:px-3 file:py-2 file:text-sm file:font-medium file:text-brand-700 hover:file:bg-brand-100;
+    @apply block w-full text-sm text-slate-600 file:mr-3 file:rounded-full file:border-0 file:bg-slate-900
+      file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-700;
   }
   label { @apply text-sm font-medium text-slate-700; }
 }

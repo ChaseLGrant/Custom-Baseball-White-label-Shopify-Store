@@ -29,7 +29,13 @@ export function DecorationPricing({ product }: { product: Product }) {
   const methods = [...new Set(product.locations.flatMap((l) => l.methods))].map((m) => CATALOG.decorationMethods[m]);
   return (
     <div className="space-y-3 text-sm">
-      {methods.map((m) => (
+      {methods.filter((m) => m.id === "INCLUDED").map((m) => (
+        <div key={m.id}>
+          <p className="font-semibold">Your logo — included</p>
+          <p className="text-slate-500">Custom printing is part of the price. No setup fee.</p>
+        </div>
+      ))}
+      {methods.filter((m) => m.id !== "INCLUDED").map((m) => (
         <div key={m.id}>
           <p className="font-semibold">{m.label}</p>
           <p className="text-slate-500">{m.description}</p>
@@ -47,8 +53,8 @@ export function DecorationPricing({ product }: { product: Product }) {
       {(product.personalization.names || product.personalization.numbers) && (
         <div>
           <p className="font-semibold">Personalization (from your roster)</p>
-          {product.personalization.names && <p>{product.personalization.names.label}: {formatMoney(product.personalization.names.unitCents)} each</p>}
-          {product.personalization.numbers && <p>{product.personalization.numbers.label}: {formatMoney(product.personalization.numbers.unitCents)} each</p>}
+          {product.personalization.names && <p>{product.personalization.names.label}: {product.personalization.names.unitCents ? `${formatMoney(product.personalization.names.unitCents)} each` : "included"}</p>}
+          {product.personalization.numbers && <p>{product.personalization.numbers.label}: {product.personalization.numbers.unitCents ? `${formatMoney(product.personalization.numbers.unitCents)} each` : "included"}</p>}
         </div>
       )}
     </div>

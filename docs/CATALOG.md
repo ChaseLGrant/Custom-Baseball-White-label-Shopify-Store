@@ -45,3 +45,22 @@ Use it when the price can't be known in advance. Examples: fully sublimated cust
 3. Run `npm test`. If you changed sample prices that the tests check, update the expected numbers to match.
 
 Existing orders keep the price they were placed at. Drafts and reorders use the new prices.
+
+## 6. Real product photos (optional)
+
+Each product shows a detailed illustrated mockup. To show real photos instead:
+
+1. Get blank product photos from your supplier (most give resellers photos they're allowed to use). Use transparent PNGs about 1000px tall, one per color.
+2. Put them in `public/products/`, e.g. `public/products/helmet-black.png`.
+3. Add them to the product:
+
+```ts
+photos: {
+  black: "/products/helmet-black.png",
+  navy: "/products/helmet-navy.png",
+},
+```
+
+4. Adjust each location's `box` (in a 200 × 220 frame) so the customer's logo lands in the right spot on the photo.
+
+Colors without a photo keep using the illustrated mockup.

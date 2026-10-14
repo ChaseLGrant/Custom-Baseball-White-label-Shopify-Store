@@ -8,7 +8,8 @@ import { QuickOrder } from "./QuickOrder";
 
 export const metadata = { title: "Order uniforms" };
 
-export default async function OrderPage() {
+export default async function OrderPage({ searchParams }: { searchParams: Promise<{ add?: string }> }) {
+  const { add } = await searchParams;
   const user = await getCurrentUser();
   const activeId = (await cookies()).get("cc_org")?.value;
   const m = user?.memberships.find((x) => x.organizationId === activeId) ?? user?.memberships[0];
@@ -27,10 +28,13 @@ export default async function OrderPage() {
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-3">
-          <Link href={user ? "/app" : "/"} className="text-brand-900"><Logo /></Link>
-          {user ? <Link href="/app" className="text-sm font-medium text-slate-600">My account</Link> : <Link href="/login?next=/order" className="text-sm font-medium text-slate-600">Sign in</Link>}
+      <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5">
+          <Link href={user ? "/app" : "/"}><Logo /></Link>
+          <nav className="flex items-center gap-4 text-sm font-medium text-slate-600">
+            <Link href="/catalog" className="hover:text-slate-900">Shop gear</Link>
+            {user ? <Link href="/app" className="hover:text-slate-900">My account</Link> : <Link href="/login?next=/order" className="hover:text-slate-900">Sign in</Link>}
+          </nav>
         </div>
       </header>
       <QuickOrder
@@ -44,6 +48,7 @@ export default async function OrderPage() {
           roster: t.roster.map((p) => ({ name: p.name, number: p.number, size: p.size, topSize: p.topSize, bottomSize: p.bottomSize, hatSize: p.hatSize })),
         }))}
         setupsPaid={setupsPaid}
+        initialAdd={add ?? null}
       />
     </div>
   );

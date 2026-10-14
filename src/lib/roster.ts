@@ -205,6 +205,11 @@ export function playerSizeFor(product: Product, p: RosterPlayerLike): string {
     case "hatSize":
       size = p.hatSize || hatSizeFromApparel(p.size || p.topSize);
       break;
+    case "mapped": {
+      const apparel = p.size || p.topSize || p.bottomSize;
+      size = (apparel && product.sizeMap?.[apparel]) || null;
+      break;
+    }
     case "none":
       size = product.sizes[0];
   }

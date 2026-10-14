@@ -11,6 +11,8 @@ export function defaultLineConfig(productId: string, primaryLogoId: string | nul
     decorations: primaryLogoId && first ? [{ location: first.id, method: first.methods[0], logoId: primaryLogoId }] : [],
     names: false,
     numbers: false,
-    sizing: p.sizeField === "none" ? "SIZE_RUN" : "ROSTER",
+    // Team supplies (pine tar, wrist tape) are ordered by quantity; player items follow the roster.
+    sizing: p.orderUnit === "team" ? "SIZE_RUN" : "ROSTER",
+    sizeRun: p.orderUnit === "team" ? { [p.sizes[0]]: p.defaultTeamQty ?? p.minQty } : {},
   });
 }

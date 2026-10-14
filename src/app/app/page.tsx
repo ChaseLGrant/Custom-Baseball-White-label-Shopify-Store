@@ -35,7 +35,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight">{welcome ? `Welcome, ${user.name.split(" ")[0]}!` : org.name}</h1>
+        <h1 className="font-display text-5xl">{welcome ? `Welcome, ${user.name.split(" ")[0]}!` : org.name}</h1>
         <p className="text-slate-600">Everything for your program&apos;s custom gear, in one place.</p>
       </div>
 
@@ -57,9 +57,10 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2" id="new-order">
-          <Link href="/order" className="block rounded-2xl bg-accent-500 p-6 text-white shadow-sm transition hover:bg-accent-600">
-            <p className="text-2xl font-black">New order →</p>
-            <p className="mt-1 text-white/90">
+          <Link href="/order" className="studio-dark group relative block overflow-hidden rounded-3xl p-8 text-white transition hover:shadow-2xl">
+            <div className="absolute -right-10 -top-10 h-56 w-56 rounded-full bg-accent-500/30 blur-3xl transition group-hover:bg-accent-500/50" />
+            <p className="font-display text-5xl italic">New order <span className="text-accent-500">→</span></p>
+            <p className="mt-2 text-slate-300">
               {logos > 0 && rosterCount > 0
                 ? "Your logo and roster are saved. Pick products and pay."
                 : "Drop your logo and roster, see your price, pay."}
