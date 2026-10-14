@@ -87,6 +87,9 @@ export const placeQuickOrder = action(async (_prev: unknown, fd: FormData) => {
     [userId, email, orgId, role] = [created.id, created.email, created.memberships[0].organizationId, "OWNER"];
   }
 
+  // Name things after the team, or the school when no team name was given.
+  const displayName = input.teamName.trim() || (await db.organization.findUnique({ where: { id: orgId } }))!.name;
+
   // --- Logo ---
   let logoId: string | null = null;
   if (hasLogoFile) {
@@ -102,7 +105,7 @@ export const placeQuickOrder = action(async (_prev: unknown, fd: FormData) => {
   if (input.existingTeamId) teamId = (await db.team.findFirst({ where: { id: input.existingTeamId, organizationId: orgId } }))?.id ?? null;
   if (roster) {
     if (!teamId) {
-      const name = input.teamName.trim() || "My Team";
+      const name = displayName;
       teamId = (await db.team.create({ data: { organizationId: orgId, name, sport: input.sport in SPORTS ? input.sport : "BASEBALL" } })).id;
     }
     await db.$transaction([
@@ -116,7 +119,7 @@ export const placeQuickOrder = action(async (_prev: unknown, fd: FormData) => {
   if (!useRoster && sizeRunTotal === 0) throw new Error("Drop in your roster, or enter how many of each size you need.");
 
   // --- Order ---
-  const order = await createDraft(orgId, userId, `${input.teamName.trim() || "Team"} order`);
+  const order = await createDraft(orgId, userId, `${displayName} ${new Date().getFullYear()} uniforms`);
   await db.orderLine.createMany({
     data: products.map((p, i) => {
       const color = p!.colors.some((c) => c.id === input.color) ? input.color : p!.colors.some((c) => c.id === "gray") ? "gray" : p!.colors[0].id;
