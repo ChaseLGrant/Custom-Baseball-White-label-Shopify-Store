@@ -25,11 +25,11 @@ export default async function PortalLayout({ children }: { children: React.React
       <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-surface/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-2 px-5 py-3">
           <Link href="/app"><Logo /></Link>
-          <nav className="order-3 flex w-full gap-1 overflow-x-auto text-sm md:order-none md:w-auto">
+          <nav className="order-3 flex w-full gap-1 overflow-x-auto whitespace-nowrap text-sm lg:order-none lg:w-auto">
             {nav.map((n) => <NavLink key={n.href} {...n} />)}
           </nav>
           <div className="ml-auto flex items-center gap-3 text-sm">
-            <Link href="/order" className="rounded-full bg-accent-500 px-4 py-2 font-semibold text-black shadow-[0_6px_20px_-6px_rgba(43,255,136,.6)] hover:bg-accent-600">New order</Link>
+            <Link href="/order" className="whitespace-nowrap rounded-full bg-accent-500 px-4 py-2 font-semibold text-black shadow-[0_6px_20px_-6px_rgba(43,255,136,.6)] hover:bg-accent-600">New order</Link>
             {user.memberships.length > 1 ? (
               <form action={switchOrganization} className="flex items-center gap-1">
                 <select name="orgId" defaultValue={org.id} className="!w-auto !py-1" aria-label="Organization">
@@ -38,11 +38,11 @@ export default async function PortalLayout({ children }: { children: React.React
                 <button className="text-brand-600 hover:underline">Switch</button>
               </form>
             ) : (
-              <span className="hidden font-medium text-slate-700 sm:inline">{org.name}</span>
+              <span className="hidden max-w-[14rem] truncate font-medium text-slate-700 xl:inline">{org.name}</span>
             )}
-            <span className="hidden text-slate-400 lg:inline">{user.name} · {ROLES[role]}</span>
+            <span className="hidden whitespace-nowrap text-slate-400 2xl:inline">{user.name} · {ROLES[role]}</span>
             {user.isStaff && <Link href="/staff" className="font-medium text-accent-600">Staff</Link>}
-            <form action={logout}><button className="text-slate-500 hover:text-slate-800">Sign out</button></form>
+            <form action={logout}><button className="whitespace-nowrap text-slate-500 hover:text-slate-800">Sign out</button></form>
           </div>
         </div>
       </header>

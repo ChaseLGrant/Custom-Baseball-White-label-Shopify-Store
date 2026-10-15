@@ -10,7 +10,7 @@ export function Logo({ className = "", dark = false }: { className?: string; dar
         <path d="M9 21c-2.2-2.9-2.2-7.1 0-10M23 11c2.2 2.9 2.2 7.1 0 10" stroke="#000" strokeWidth="2" fill="none" strokeLinecap="round" strokeDasharray="1.6 2.2" />
         <circle cx="16" cy="16" r="8.5" fill="none" stroke="#000" strokeWidth="2.4" />
       </svg>
-      <span className={`font-display text-[22px] ${dark ? "text-white" : "text-slate-900"}`}>Club Custom</span>
+      <span className={`whitespace-nowrap font-display text-[20px] sm:text-[22px] ${dark ? "text-white" : "text-slate-900"}`}>Club Custom</span>
     </span>
   );
 }
@@ -23,14 +23,14 @@ export async function SiteHeader({ dark = false }: { dark?: boolean }) {
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-3.5">
         <Link href="/"><Logo dark={dark} /></Link>
         <nav className="flex items-center gap-1 text-sm font-medium sm:gap-2">
-          <Link href="/catalog" className={`rounded-full px-3 py-1.5 ${link}`}>Shop gear</Link>
+          <Link href="/catalog" className={`hidden whitespace-nowrap rounded-full px-3 py-1.5 sm:inline ${link}`}>Shop gear</Link>
           <Link href="/#how" className={`hidden rounded-full px-3 py-1.5 sm:inline ${link}`}>How it works</Link>
           {user ? (
-            <Link href={user.memberships.length ? "/app" : "/staff"} className={`rounded-full px-3 py-1.5 ${link}`}>My account</Link>
+            <Link href={user.memberships.length ? "/app" : "/staff"} className={`whitespace-nowrap rounded-full px-3 py-1.5 ${link}`}>My account</Link>
           ) : (
-            <Link href="/login" className={`rounded-full px-3 py-1.5 ${link}`}>Sign in</Link>
+            <Link href="/login" className={`whitespace-nowrap rounded-full px-3 py-1.5 ${link}`}>Sign in</Link>
           )}
-          <ButtonLink href="/order" variant="accent" className="ml-1">Start an order</ButtonLink>
+          <ButtonLink href="/order" variant="accent" className="ml-1 whitespace-nowrap"><span className="sm:hidden">Order</span><span className="hidden sm:inline">Start an order</span></ButtonLink>
         </nav>
       </div>
     </header>

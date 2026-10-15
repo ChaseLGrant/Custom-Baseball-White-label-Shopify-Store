@@ -5,7 +5,10 @@ import { ActionForm } from "@/components/ActionForm";
 import { Card, CardHeader, Field, PageHeader } from "@/components/ui";
 import { RosterImport } from "@/components/RosterImport";
 import { RosterEditor } from "@/components/RosterEditor";
-import { updateTeam } from "@/lib/actions/org";
+import { setSizeLink, updateTeam } from "@/lib/actions/org";
+import { CopyButton } from "@/components/CopyButton";
+import { SizeChart } from "@/components/SizeChart";
+import { headers } from "next/headers";
 import { SPORTS, can, type Sport } from "@/lib/domain";
 
 export default async function TeamPage({ params }: { params: Promise<{ id: string }> }) {
@@ -17,6 +20,10 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
   });
   if (!team) notFound();
   const canEdit = can(role, "manage_teams");
+  const h = await headers();
+  const base = process.env.APP_URL || `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host")}`;
+  const sizeLink = team.sizeLinkToken ? `${base}/size/${team.sizeLinkToken}` : null;
+  const missingSizes = team.roster.filter((p) => !p.size && !p.topSize).length;
   return (
     <>
       <PageHeader
@@ -38,6 +45,38 @@ export default async function TeamPage({ params }: { params: Promise<{ id: strin
           </Card>
         </div>
         <div className="space-y-6">
+          {canEdit && (
+            <Card className="border-accent-500/40">
+              <CardHeader
+                title="Collect sizes with a link"
+                description="Text it to the team group chat. Players or parents enter their own name, number and size, and it lands in this roster. No accounts, no spreadsheet."
+              />
+              <div className="space-y-3 p-5">
+                {sizeLink ? (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <input readOnly value={sizeLink} aria-label="Size link" className="min-w-0 flex-1 !text-xs" />
+                      <CopyButton text={sizeLink} />
+                    </div>
+                    <p className="text-xs text-slate-500">
+                      {team.roster.length} players so far{missingSizes ? ` · ${missingSizes} missing a size` : ""}.
+                    </p>
+                    <div className="flex gap-4 text-xs">
+                      <form action={setSizeLink}><input type="hidden" name="teamId" value={team.id} /><input type="hidden" name="mode" value="new" /><button className="text-slate-500 underline hover:text-slate-800">New link</button></form>
+                      <form action={setSizeLink}><input type="hidden" name="teamId" value={team.id} /><input type="hidden" name="mode" value="off" /><button className="text-slate-500 underline hover:text-slate-800">Turn off</button></form>
+                    </div>
+                  </>
+                ) : (
+                  <form action={setSizeLink}>
+                    <input type="hidden" name="teamId" value={team.id} />
+                    <input type="hidden" name="mode" value="new" />
+                    <button className="rounded-full bg-accent-500 px-5 py-2.5 text-sm font-semibold text-black hover:bg-accent-600">Create size link</button>
+                  </form>
+                )}
+              </div>
+            </Card>
+          )}
+          <SizeChart />
           {canEdit && (
             <Card>
               <CardHeader title="Import roster from a spreadsheet" />

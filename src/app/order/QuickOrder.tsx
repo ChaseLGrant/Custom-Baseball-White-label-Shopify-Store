@@ -1,7 +1,7 @@
 "use client";
 // One-screen ordering: drop logo, drop roster, pick gear, pay.
 import Link from "next/link";
-import { useActionState, useMemo, useState, useTransition } from "react";
+import { useActionState, useEffect, useMemo, useState, useTransition } from "react";
 import { CATALOG, GROUPS, UNIFORM_KIT_PRODUCT_IDS, getProduct, lowestUnitCents, type Product } from "@/lib/catalog";
 import { ORG_TYPES, formatMoney, lineConfigSchema } from "@/lib/domain";
 import { priceOrder } from "@/lib/pricing";
@@ -10,6 +10,8 @@ import { pickColor, quickLineConfig } from "@/lib/quick-config";
 import { placeQuickOrder, previewRoster } from "@/lib/actions/quick";
 import { ProductPreview } from "@/components/ProductPreview";
 import { cx } from "@/components/ui";
+import { SizeChart } from "@/components/SizeChart";
+import { estimateDelivery, formatDateRange } from "@/lib/delivery";
 
 interface Props {
   signedIn: boolean;
@@ -79,6 +81,12 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
     [selected, color, logoId, players, personalize, hasNames, sizeRun, teamQty],
   );
   const price = useMemo(() => priceOrder({ lines, setupsPaid }), [lines, setupsPaid]);
+  const headcount = players.length || Object.values(sizeRun).reduce((a, b) => a + (b || 0), 0);
+  const perPlayer = headcount > 1 && price.totalCents > 0 ? Math.round(price.totalCents / headcount) : null;
+  // Dates are computed after mount so the server and browser render the same HTML.
+  const [today, setToday] = useState<Date | null>(null);
+  useEffect(() => setToday(new Date()), []);
+  const arrival = useMemo(() => (today ? estimateDelivery(selected.map((id) => getProduct(id)!.leadTimeDays), today) : null), [selected, today]);
   const errors = price.issues.filter((i) => i.level === "error" && !/Choose a logo/.test(i.message));
   const needsPlayers = selected.some((id) => getProduct(id)!.orderUnit === "player");
 
@@ -233,6 +241,11 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
                 Sizes: {sizeBreakdown(getProduct("jersey-full-button")!, buildLineItems(getProduct("jersey-full-button")!, lineConfigSchema.parse({ color: "navy" }), players)).map(([s, q]) => `${s}×${q}`).join(" · ")}
               </p>
               {rosterProblems.length > 0 && <p className="mt-1 text-sm text-amber-700">Check: {rosterProblems.slice(0, 3).join(" ")}</p>}
+              {savedTeam && !newPlayers && (
+                <p className="mt-1 text-sm text-slate-500">
+                  Still waiting on sizes? <Link href={`/app/teams/${savedTeam.id}`} className="font-semibold text-accent-600 underline">Send your team a size link</Link> and players fill them in themselves.
+                </p>
+              )}
               {newPlayers && !savedTeam && (
                 <input value={teamName} onChange={(e) => setTeamName(e.target.value)} placeholder="Team name (optional) — e.g. Varsity" className="mt-3 sm:!w-80" aria-label="Team name" />
               )}
@@ -252,6 +265,7 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
               </div>
             </>
           )}
+          {needsPlayers && <SizeChart className="mt-4" />}
         </Step>
 
         {/* 3. Gear */}
@@ -346,6 +360,22 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
               <span className="font-display text-4xl">{formatMoney(price.totalCents)}</span>
             </div>
             <p className="text-right text-xs text-slate-400">+ sales tax unless tax-exempt</p>
+            {(perPlayer || arrival) && (
+              <div className="mt-4 grid grid-cols-2 gap-2 text-center">
+                {perPlayer && (
+                  <div className="rounded-xl bg-slate-50 px-3 py-2">
+                    <p className="font-display text-2xl text-accent-600">{formatMoney(perPlayer)}</p>
+                    <p className="text-[11px] text-slate-500">per player · {headcount} players</p>
+                  </div>
+                )}
+                {arrival && (
+                  <div className={`rounded-xl bg-slate-50 px-3 py-2 ${perPlayer ? "" : "col-span-2"}`}>
+                    <p className="font-display text-2xl">{formatDateRange(arrival)}</p>
+                    <p className="text-[11px] text-slate-500">estimated arrival if ordered today</p>
+                  </div>
+                )}
+              </div>
+            )}
             <button type="submit" disabled={!!missing || pending}
               className="mt-5 w-full rounded-full bg-accent-500 px-6 py-4 text-base font-bold text-black shadow-[0_8px_24px_-8px_rgba(43,255,136,.7)] transition hover:bg-accent-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:shadow-none">
               {payLabel}{!missing && !pending && " →"}
@@ -361,7 +391,9 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-5 py-3">
           <div>
             <p className="font-display text-3xl">{formatMoney(price.totalCents)}</p>
-            <p className="text-xs text-slate-500">{price.totalQuantity} items · + tax</p>
+            <p className="text-xs text-slate-500">
+              {perPlayer ? `${formatMoney(perPlayer)}/player` : `${price.totalQuantity} items`}{arrival ? ` · arrives ~${formatDateRange(arrival).split(" – ")[1]}` : " · + tax"}
+            </p>
           </div>
           <div className="text-right">
             <button type="submit" disabled={!!missing || pending}

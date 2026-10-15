@@ -124,6 +124,46 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Coach toolkit */}
+        <section className="mx-auto max-w-7xl px-5 py-20">
+          <div className="grid items-center gap-12 lg:grid-cols-[1.1fr_1fr]">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-widest text-accent-600">Built by people who&apos;ve chased sizes</p>
+              <h2 className="font-display mt-3 text-5xl">Stop texting 18 parents for sizes.</h2>
+              <p className="mt-4 text-lg text-slate-600">Send one link to the team group chat. Players fill in their own name, number and size, and your roster builds itself.</p>
+              <ul className="mt-8 grid gap-4 sm:grid-cols-2">
+                {[
+                  ["🔗", "Size link", "No spreadsheet. Duplicate numbers are blocked automatically."],
+                  ["💵", "Cost per player", "See exactly what to collect from each family before you pay."],
+                  ["📅", "Arrival date up front", "Know if gear lands before opening day, before checkout."],
+                  ["📏", "Built-in fit guide", "Youth to 3XL and cap sizes, right where you pick them."],
+                ].map(([icon, t, b]) => (
+                  <li key={t} className="flex gap-3">
+                    <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-slate-50 text-lg">{icon}</span>
+                    <span><span className="block font-semibold">{t}</span><span className="block text-sm text-slate-500">{b}</span></span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="mx-auto w-full max-w-sm rounded-[2.5rem] bg-surface p-3 ring-1 ring-slate-200/80 shadow-2xl shadow-black/50">
+              <div className="rounded-[2rem] bg-slate-50 p-5">
+                <p className="text-center text-xs font-semibold text-slate-500">Varsity Baseball 🧢 · 18 people</p>
+                <div className="mt-4 space-y-3 text-sm">
+                  <p className="ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-accent-500 px-4 py-2.5 text-black">Uniform sizes due Friday. Takes 20 seconds 👇<br /><span className="font-semibold underline">Tap to add your size →</span></p>
+                  <p className="max-w-[80%] rounded-2xl rounded-bl-sm bg-surface px-4 py-2.5 text-slate-700">Done! Jake #12, size L</p>
+                  <p className="max-w-[80%] rounded-2xl rounded-bl-sm bg-surface px-4 py-2.5 text-slate-700">Done for Owen, YXL 👍</p>
+                  <div className="rounded-2xl bg-surface p-4 ring-1 ring-accent-500/40">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-accent-600">Roster · live</p>
+                    <p className="mt-1 font-display text-3xl">16 of 18 in</p>
+                    <div className="mt-2 h-2 rounded-full bg-slate-100"><div className="h-2 w-[89%] rounded-full bg-accent-500" /></div>
+                    <p className="mt-2 text-xs text-slate-500">$84.50 per player · arrives before opening day</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Game-day extras */}
         <section className="mx-auto max-w-7xl px-5 py-20">
           <div className="grid items-center gap-10 lg:grid-cols-[1fr_1.4fr]">

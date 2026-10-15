@@ -26,7 +26,7 @@ export async function OrderStatusView({ order, ctx, justSubmitted }: { order: Fu
         title={<span className="flex flex-wrap items-center gap-3">{order.name} <Badge tone={statusTone(status)}>{info?.label ?? status}</Badge></span>}
         description={`${formatOrderNumber(order.number)} · placed by ${creator?.name ?? "—"}${order.submittedAt ? ` on ${order.submittedAt.toLocaleDateString()}` : ""}`}
         actions={
-          isPaidOrInvoiced(status) || status === "CANCELLED" ? (
+          ["IN_PRODUCTION", "SHIPPED", "DELIVERED", "CANCELLED"].includes(status) ? (
             <>
               <form action={reorderAction}>
                 <input type="hidden" name="orderId" value={order.id} />

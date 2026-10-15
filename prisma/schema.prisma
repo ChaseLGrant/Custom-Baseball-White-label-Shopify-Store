@@ -101,6 +101,8 @@ model Team {
   primaryColor   String?
   secondaryColor String?
   archived       Boolean      @default(false)
+  // Public link players/parents use to add their own name, number and size.
+  sizeLinkToken  String?      @unique
   createdAt      DateTime     @default(now())
   roster         RosterPlayer[]
   orderLines     OrderLine[]

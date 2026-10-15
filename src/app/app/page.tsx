@@ -18,7 +18,8 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
     db.order.findMany({ where: { organizationId: org.id }, orderBy: { updatedAt: "desc" }, take: 8 }),
   ]);
   const placed = orders.some((o) => o.status !== "DRAFT");
-  const lastDone = orders.find((o) => ["PAID", "INVOICED", "PROOF_READY", "PROOF_REVISION", "IN_PRODUCTION", "SHIPPED", "DELIVERED"].includes(o.status));
+  // "Order again" offers the most recent order that has actually been made.
+  const lastDone = orders.find((o) => ["IN_PRODUCTION", "SHIPPED", "DELIVERED"].includes(o.status));
 
   const steps = [
     { done: logos > 0, label: "Upload your logo", href: "/app/logos", hint: "Once — reused on every order." },
@@ -75,7 +76,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
               </div>
               <form action={reorderAndPay}>
                 <input type="hidden" name="orderId" value={lastDone.id} />
-                <button className="rounded-md bg-brand-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-brand-800">↻ Reorder &amp; pay</button>
+                <button className="rounded-full bg-slate-900 px-5 py-2.5 text-sm font-semibold text-black hover:bg-slate-700">↻ Reorder &amp; pay</button>
               </form>
             </Card>
           )}
@@ -85,22 +86,39 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
           </form>
         </div>
 
-        <Card>
-          <CardHeader title={todo ? `Getting set up (${steps.length - todo}/${steps.length})` : "You're all set"} />
-          <ol className="space-y-1 p-3">
-            {steps.map((s) => (
-              <li key={s.label}>
-                <Link href={s.href} className="flex items-start gap-3 rounded-md px-2 py-2 hover:bg-slate-50">
-                  <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-xs ${s.done ? "bg-accent-500 text-black" : "border-2 border-slate-300"}`}>{s.done ? "✓" : ""}</span>
-                  <span>
-                    <span className={`block text-sm font-medium ${s.done ? "text-slate-400 line-through" : ""}`}>{s.label}</span>
-                    {!s.done && <span className="block text-xs text-slate-500">{s.hint}</span>}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ol>
-        </Card>
+        {todo ? (
+          <Card>
+            <CardHeader title={`Getting set up (${steps.length - todo}/${steps.length})`} />
+            <ol className="space-y-1 p-3">
+              {steps.map((s) => (
+                <li key={s.label}>
+                  <Link href={s.href} className="flex items-start gap-3 rounded-md px-2 py-2 hover:bg-slate-50">
+                    <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-xs ${s.done ? "bg-accent-500 text-black" : "border-2 border-slate-300"}`}>{s.done ? "✓" : ""}</span>
+                    <span>
+                      <span className={`block text-sm font-medium ${s.done ? "text-slate-400 line-through" : ""}`}>{s.label}</span>
+                      {!s.done && <span className="block text-xs text-slate-500">{s.hint}</span>}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ol>
+          </Card>
+        ) : (
+          <Card>
+            <CardHeader title="Your teams" action={<Link href="/app/teams" className="text-sm font-semibold text-brand-600">Manage →</Link>} />
+            <ul className="divide-y divide-slate-100">
+              {teams.map((t) => (
+                <li key={t.id}>
+                  <Link href={`/app/teams/${t.id}`} className="flex items-center justify-between gap-2 px-5 py-3 hover:bg-slate-50">
+                    <span className="font-medium">{t.name}</span>
+                    <span className="text-sm text-slate-500">{t._count.roster} players</span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <p className="border-t border-slate-100 px-5 py-3 text-xs text-slate-500">Share a team&apos;s size link so players fill in their own name, number and size.</p>
+          </Card>
+        )}
       </div>
 
       <Card>

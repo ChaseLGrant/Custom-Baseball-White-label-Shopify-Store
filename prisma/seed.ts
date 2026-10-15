@@ -27,13 +27,12 @@ const PROOF_SVG = (orderNo: string) => `<svg xmlns="http://www.w3.org/2000/svg" 
   <rect width="800" height="520" fill="#ffffff"/>
   <rect x="0" y="0" width="800" height="56" fill="#0b2545"/>
   <text x="24" y="36" fill="#fff" font-size="22" font-weight="700">CLUB CUSTOM · PRODUCTION PROOF · ${orderNo} · v1</text>
-  <path d="M140 110 L190 95 Q220 120 250 95 L300 110 L380 160 L350 220 L310 200 L310 470 L130 470 L130 200 L90 220 L60 160 Z" fill="#13294b" stroke="#0a1730" stroke-width="3"/>
-  <circle cx="245" cy="215" r="34" fill="#c8102e" stroke="#fff" stroke-width="4"/><text x="245" y="231" text-anchor="middle" fill="#fff" font-size="44" font-family="Georgia" font-weight="700">L</text>
-  <text x="430" y="120" font-size="18" font-weight="700" fill="#0b2545">Pro Full-Button Jersey — Navy</text>
-  <text x="430" y="150" font-size="15" fill="#334155">Left chest: Primary L logo, embroidery, 3.5" wide</text>
-  <text x="430" y="175" font-size="15" fill="#334155">Thread: Scarlet (PMS 186) / White</text>
-  <text x="430" y="215" font-size="18" font-weight="700" fill="#0b2545">Structured Stretch-Fit Cap — Navy</text>
-  <text x="430" y="245" font-size="15" fill="#334155">Front: Primary L logo, 3D embroidery, 2.25" tall</text>
+  <path d="M150 110 L200 95 Q245 125 290 95 L340 110 L400 165 L365 215 L330 195 L330 470 L160 470 L160 195 L125 215 L90 165 Z" fill="#9ca3af" stroke="#6b7280" stroke-width="3"/>
+  <circle cx="245" cy="230" r="52" fill="#c8102e" stroke="#fff" stroke-width="5"/><text x="245" y="256" text-anchor="middle" fill="#fff" font-size="68" font-family="Georgia" font-weight="700">L</text>
+  <text x="430" y="120" font-size="18" font-weight="700" fill="#0b2545">Practice / BP Tee — Gray</text>
+  <text x="430" y="150" font-size="15" fill="#334155">Front center: Primary L logo, screen print, 10" wide</text>
+  <text x="430" y="175" font-size="15" fill="#334155">Ink: Scarlet (PMS 186) / White</text>
+  <text x="430" y="200" font-size="15" fill="#334155">Placement: centered, 3" below the collar</text>
   <text x="430" y="300" font-size="14" fill="#64748b">Please verify colors, placement and sizes.</text>
   <text x="430" y="322" font-size="14" fill="#64748b">Production begins only after you approve this proof.</text>
 </svg>`;

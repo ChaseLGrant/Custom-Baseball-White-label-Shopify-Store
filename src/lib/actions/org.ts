@@ -244,3 +244,12 @@ export const updateOrganization = action(async (_prev: unknown, fd: FormData) =>
   return "Saved.";
 });
 
+
+/** Turn a team's public size-collection link on, off, or replace it with a new one. */
+export async function setSizeLink(fd: FormData) {
+  const { team } = await ownedTeam(str(fd, "teamId"));
+  const mode = str(fd, "mode");
+  const sizeLinkToken = mode === "off" ? null : randomBytes(9).toString("base64url");
+  await db.team.update({ where: { id: team.id }, data: { sizeLinkToken } });
+  revalidatePath(`/app/teams/${team.id}`);
+}

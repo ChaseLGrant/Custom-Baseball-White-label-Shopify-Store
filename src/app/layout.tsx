@@ -17,7 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="min-h-screen">
         {CATALOG.isSample && (
           <div className="border-b border-slate-200 bg-black px-4 py-1.5 text-center text-[11px] font-semibold tracking-widest text-accent-500">
-            PREVIEW — prices shown are samples, not real supplier pricing
+            PREVIEW — <span className="sm:hidden">sample prices</span><span className="hidden sm:inline">prices shown are samples, not real supplier pricing</span>
           </div>
         )}
         {children}
