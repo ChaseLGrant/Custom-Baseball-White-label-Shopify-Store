@@ -1,0 +1,8 @@
+# Netlify build settings for Club Custom (Next.js 15 + Prisma).
+# The Netlify Next.js runtime (@netlify/plugin-nextjs) is applied automatically.
+[build]
+  command = "npx prisma generate && npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"

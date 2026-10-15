@@ -40,7 +40,7 @@ You need [Node.js 20+](https://nodejs.org).
 
 ```bash
 npm install
-cp .env.example .env        # defaults work for local testing
+cp .env.example .env        # point DATABASE_URL / DIRECT_URL at a Postgres database
 npm run setup               # creates the local database + demo data
 npm run dev                 # open http://localhost:3000
 ```
@@ -55,6 +55,10 @@ Demo accounts (password `clubcustom123`):
 Shopify isn't connected by default, so checkout runs in **test mode**: a clearly labelled fake payment page, and no card is charged. See [docs/SHOPIFY.md](docs/SHOPIFY.md) to connect a real store.
 
 Other commands: `npm test` (unit tests), `npm run lint` (type check), `npm run build`, `npm run db:reset` (wipe and re-seed).
+
+### Deploying to Netlify
+
+`netlify.toml` runs `prisma generate && next build`; Netlify's Next.js runtime is applied automatically. Set these site environment variables: `DATABASE_URL` (pooled, e.g. Supabase transaction pooler on port 6543 with `?pgbouncer=true&connection_limit=1`), `DIRECT_URL`, `APP_URL` (the site URL) and `SHOPIFY_API_VERSION`. Leave the other `SHOPIFY_*` variables blank to keep test checkout mode. Create the tables once with `npx prisma db push` and load demo data with `npm run db:seed` (the seed wipes the database).
 
 ---
 
@@ -102,7 +106,7 @@ prisma/schema.prisma    Database schema
 tests/                  Unit tests (pricing, roster, checkout totals)
 ```
 
-Tech: Next.js 15 (App Router) + TypeScript, Prisma (SQLite locally, Postgres in production), Tailwind CSS, Shopify Admin GraphQL API.
+Tech: Next.js 15 (App Router) + TypeScript, Prisma (Postgres), Tailwind CSS, Shopify Admin GraphQL API.
 
 ---
 
@@ -112,8 +116,8 @@ These are required before real customers use the site:
 
 - [ ] **Real pricing.** Replace every sample price in `src/lib/catalog/index.ts` with your supplier price list plus margin, then set `isSample: false`. Step-by-step instructions are in [docs/CATALOG.md](docs/CATALOG.md). Until you do, a yellow banner warns every visitor.
 - [ ] **Connect Shopify and test it in a development store.** The Shopify code follows the Admin GraphQL API, but **it has not been run against a real store yet** because no store credentials were available. Place a test card order, a Net 30 invoice order and a fulfillment, and confirm the webhooks update the order. See [docs/SHOPIFY.md](docs/SHOPIFY.md).
-- [ ] **Production database.** Change `provider = "sqlite"` to `"postgresql"` in `prisma/schema.prisma` and set `DATABASE_URL` (Supabase, Neon or Railway all work).
-- [ ] **Production file storage.** Uploads are saved to the local `storage/` folder, which serverless hosts like Vercel erase. Swap `src/lib/server/storage.ts` for S3, Supabase Storage or Vercel Blob. Only two functions need to change.
+- [x] **Production database.** The schema now uses Postgres (`provider = "postgresql"`). Set `DATABASE_URL` (pooled) and `DIRECT_URL` (direct, for `prisma db push`). Supabase, Neon or Railway all work. Local development needs a Postgres too (see `.env.example`).
+- [x] **Production file storage.** Uploads (logos, proofs, certificates) are stored in the database (`StoredFile` table), so they survive on serverless hosts like Netlify. To move them to S3 / Supabase Storage later, only `src/lib/server/storage.ts` changes.
 - [ ] **Email notifications.** Not built yet. Customers currently see updates in the portal only. Add emails for "proof ready", "payment needed", "approval needed", "shipped" and invite links (Resend or Postmark are simple options). Shopify already emails payment receipts.
 - [ ] **Password reset.** Not built yet. Add a "forgot password" email link before launch.
 - [ ] **Login rate limiting.** Add basic throttling on `/login` to slow down password guessing.

@@ -39,7 +39,7 @@ const PROOF_SVG = (orderNo: string) => `<svg xmlns="http://www.w3.org/2000/svg" 
 
 async function main() {
   // Wipe (dev only)
-  for (const t of ["orderEvent", "shipment", "proof", "orderLineItem", "orderLine", "order", "savedDesign", "rosterPlayer", "team", "logo", "address", "invite", "membership", "session", "organization", "user", "counter"] as const) {
+  for (const t of ["orderEvent", "shipment", "proof", "orderLineItem", "orderLine", "order", "savedDesign", "rosterPlayer", "team", "logo", "address", "invite", "membership", "session", "organization", "user", "counter", "storedFile"] as const) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await (db[t] as any).deleteMany();
   }

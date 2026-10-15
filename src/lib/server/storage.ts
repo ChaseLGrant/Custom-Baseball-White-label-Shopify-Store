@@ -1,12 +1,10 @@
-// Uploaded files (logos, proofs, tax certificates) are stored outside /public and
+// Uploaded files (logos, proofs, tax certificates) are stored in the database
+// (StoredFile table) so they survive on serverless hosts like Netlify, and are
 // served by src/app/files/[...path]/route.ts, which checks the viewer belongs to
-// the organization. Swap this module for S3 / Supabase Storage / Vercel Blob in
-// production; only saveUpload() and readUpload() need to change.
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import path from "node:path";
+// the organization. To move to S3 / Supabase Storage later, only saveUpload(),
+// saveGenerated() and readUpload() need to change.
 import { randomBytes } from "node:crypto";
-
-const ROOT = path.join(process.cwd(), "storage");
+import { db } from "./db";
 
 export type UploadKind = "logos" | "proofs" | "certificates";
 
@@ -35,19 +33,18 @@ export async function saveUpload(
     throw new Error(`Unsupported file type. Allowed: ${allowed.map((t) => TYPES[t].ext.toUpperCase()).join(", ")}.`);
 
   const name = `${randomBytes(12).toString("hex")}.${TYPES[mimeType].ext}`;
-  const dir = path.join(ROOT, safeSegment(orgId), kind);
-  await mkdir(dir, { recursive: true });
-  await writeFile(path.join(dir, name), bytes);
-  return { url: `/files/${safeSegment(orgId)}/${kind}/${name}`, mimeType };
+  const key = `${safeSegment(orgId)}/${kind}/${name}`;
+  await db.storedFile.create({ data: { path: key, mimeType, data: bytes } });
+  return { url: `/files/${key}`, mimeType };
 }
 
 /** Write a file we generated ourselves (seed data, etc). */
 export async function saveGenerated(orgId: string, kind: UploadKind, ext: string, data: Buffer | string) {
   const name = `${randomBytes(12).toString("hex")}.${ext}`;
-  const dir = path.join(ROOT, safeSegment(orgId), kind);
-  await mkdir(dir, { recursive: true });
-  await writeFile(path.join(dir, name), data);
-  return `/files/${safeSegment(orgId)}/${kind}/${name}`;
+  const key = `${safeSegment(orgId)}/${kind}/${name}`;
+  const mimeType = Object.entries(TYPES).find(([, t]) => t.ext === ext)?.[0] ?? "application/octet-stream";
+  await db.storedFile.create({ data: { path: key, mimeType, data: Buffer.from(data) } });
+  return `/files/${key}`;
 }
 
 export async function readUpload(segments: string[]) {
@@ -55,11 +52,9 @@ export async function readUpload(segments: string[]) {
   const ext = segments[2].split(".").pop() ?? "";
   const mimeType = Object.entries(TYPES).find(([, t]) => t.ext === ext)?.[0];
   if (!mimeType) return null;
-  try {
-    return { data: await readFile(path.join(ROOT, ...segments)), mimeType };
-  } catch {
-    return null;
-  }
+  const file = await db.storedFile.findUnique({ where: { path: segments.join("/") } });
+  if (!file) return null;
+  return { data: Buffer.from(file.data), mimeType };
 }
 
 function safeSegment(s: string) {
