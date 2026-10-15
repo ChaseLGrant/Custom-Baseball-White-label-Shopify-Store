@@ -389,7 +389,10 @@ const products: Product[] = [
   {
     id: "batting-helmet",
     sku: "CC-BH800",
-    photo: photo("batting-helmet-black", "black", { front: { x: 110, y: 53, w: 27, h: 33, fit: "fill" }, side: { x: 44, y: 60, w: 44, h: 40 } }),
+    photo: photo("batting-helmet-black", "black", { front: { x: 76, y: 42, w: 48, h: 46 } }, {
+      // The padding inside the helmet stays black in every shell color.
+      keepClip: "M22 118 L60 108 L100 105 L140 108 L178 118 L178 140 L165 148 L150 160 L140 158 L128 152 L100 151 L72 152 L55 158 L48 170 L40 185 L30 185 L25 170 L22 140 Z",
+    }),
     name: "Custom Batting Helmet",
     category: "HELMET",
     group: "headwear",

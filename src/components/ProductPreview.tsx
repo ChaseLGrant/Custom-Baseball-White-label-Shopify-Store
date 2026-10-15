@@ -512,9 +512,17 @@ function PhotoPreview({ product, colorId, hex, decorations, logoUrls, numbers, s
           {tint && (
             <defs>
               <TintFilter id={filterId} photo={photo} hex={hex} />
+              {photo.keepClip && (
+                <clipPath id={`${filterId}-keep`}>
+                  <path d={photo.keepClip} />
+                </clipPath>
+              )}
             </defs>
           )}
           <image href={photo.src} x="0" y="0" width="200" height="220" preserveAspectRatio="xMidYMid meet" filter={tint ? `url(#${filterId})` : undefined} />
+          {tint && photo.keepClip && (
+            <image href={photo.src} x="0" y="0" width="200" height="220" preserveAspectRatio="xMidYMid meet" clipPath={`url(#${filterId}-keep)`} />
+          )}
           {product.locations.map((loc) => {
             const box = photo.boxes[loc.id];
             const d = decorations.find((x) => x.location === loc.id);

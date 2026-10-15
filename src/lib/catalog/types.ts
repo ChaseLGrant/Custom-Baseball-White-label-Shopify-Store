@@ -156,4 +156,6 @@ export interface ProductPhoto {
   copies?: Record<string, Box[]>;
   /** Where a player number is printed on the photo, if anywhere. */
   number?: { x: number; y: number; size: number };
+  /** SVG path (200x220 frame) of an area that keeps its original color, e.g. a helmet's black padding. */
+  keepClip?: string;
 }
