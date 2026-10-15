@@ -6,3 +6,8 @@
 
 [build.environment]
   NODE_VERSION = "20"
+
+# Declared explicitly: sites created through the API don't get the Next.js
+# runtime auto-enabled, and without it Netlify publishes the raw .next folder.
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
