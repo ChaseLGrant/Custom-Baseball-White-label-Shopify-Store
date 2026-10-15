@@ -129,6 +129,8 @@ export interface Box {
   y: number;
   w: number;
   h: number;
+  /** "fill" squeezes the logo into the box, e.g. to follow a curved surface seen at an angle. */
+  fit?: "contain" | "fill";
 }
 
 /**

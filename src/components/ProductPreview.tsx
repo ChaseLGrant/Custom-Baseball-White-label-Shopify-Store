@@ -524,7 +524,7 @@ function PhotoPreview({ product, colorId, hex, decorations, logoUrls, numbers, s
             const copies = numbers && product.shape === "eyeblack" ? [] : photo.copies?.[loc.id] ?? [];
             return [box, ...copies].map((b, i) =>
               url ? (
-                <image key={`${loc.id}${i}`} href={url} x={b.x} y={b.y} width={b.w} height={b.h} preserveAspectRatio="xMidYMid meet" />
+                <image key={`${loc.id}${i}`} href={url} x={b.x} y={b.y} width={b.w} height={b.h} preserveAspectRatio={b.fit === "fill" ? "none" : "xMidYMid meet"} />
               ) : (
                 <rect key={`${loc.id}${i}`} x={b.x} y={b.y} width={b.w} height={b.h} rx="4" fill="none" stroke={ink} strokeDasharray="4 3" opacity=".6" />
               ),

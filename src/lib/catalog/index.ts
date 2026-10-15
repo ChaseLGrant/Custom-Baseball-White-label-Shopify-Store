@@ -306,7 +306,7 @@ const products: Product[] = [
   {
     id: "fleece-hoodie",
     sku: "CC-FH500",
-    photo: photo("fleece-hoodie-black", "black", { "front-center": { x: 68, y: 90, w: 64, h: 40 } }),
+    photo: photo("fleece-hoodie-black", "black", { "front-center": { x: 75, y: 54, w: 50, h: 42 } }),
     name: "Team Fleece Hoodie",
     category: "OUTERWEAR",
     group: "apparel",
@@ -389,12 +389,12 @@ const products: Product[] = [
   {
     id: "batting-helmet",
     sku: "CC-BH800",
-    photo: photo("batting-helmet-black", "black", { side: { x: 44, y: 54, w: 48, h: 44 } }),
+    photo: photo("batting-helmet-black", "black", { front: { x: 110, y: 53, w: 27, h: 33, fit: "fill" }, side: { x: 44, y: 60, w: 44, h: 40 } }),
     name: "Custom Batting Helmet",
     category: "HELMET",
     group: "headwear",
     shape: "helmet",
-    tagline: "Your colors, your logo decal, player numbers on the back.",
+    tagline: "Your colors, logo decal on the front, player numbers on the back.",
     orderUnit: "player",
     description: "NOCSAE-certified batting helmet in your team color with die-cut logo decals and back numbers applied.",
     features: ["Meets NOCSAE standard", "Matte or gloss team colors", "Decals applied before shipping"],
@@ -419,6 +419,7 @@ const products: Product[] = [
       verifiedAt: null,
     },
     locations: [
+      { id: "front", label: "Front center decal", view: "front", methods: ["VINYL_DECAL"], box: { x: 150, y: 56, w: 26, h: 36 }, maxSizeIn: '3" × 2.5"' },
       { id: "side", label: "Side logo decal", view: "front", methods: ["VINYL_DECAL"], box: { x: 92, y: 70, w: 52, h: 46 }, maxSizeIn: '3" × 3"' },
       { id: "back-logo", label: "Back logo decal", view: "back", methods: ["VINYL_DECAL"], box: { x: 84, y: 60, w: 32, h: 26 }, maxSizeIn: '2" × 1.5"' },
     ],
