@@ -226,7 +226,7 @@ const products: Product[] = [
   {
     id: "hat-stretch-fit",
     sku: "CC-HS300",
-    photo: photo("hat-stretch-fit-black", "black", { front: { x: 70, y: 50, w: 60, h: 50 } }),
+    photo: photo("hat-stretch-fit-black", "black", { front: { x: 70, y: 74, w: 60, h: 50 } }),
     name: "Structured Stretch-Fit Cap",
     category: "HAT",
     group: "headwear",
@@ -551,7 +551,7 @@ const products: Product[] = [
   {
     id: "baseball-belt",
     sku: "CC-BB840",
-    photo: photo("baseball-belt-black", "black", { strap: { x: 62, y: 100, w: 36, h: 17 } }),
+    photo: photo("baseball-belt-black", "black", { strap: { x: 165, y: 104, w: 15, h: 11.5 } }),
     name: "Custom Team Belt",
     category: "BELT",
     group: "uniforms",
@@ -581,7 +581,7 @@ const products: Product[] = [
       verifiedAt: null,
     },
     locations: [
-      { id: "strap", label: "Logo on strap", view: "front", methods: ["FULL_COLOR_PRINT"], box: { x: 86, y: 80, w: 40, h: 40 }, maxSizeIn: '1.25" tall' },
+      { id: "strap", label: "Logo on belt tip", view: "front", methods: ["FULL_COLOR_PRINT"], box: { x: 86, y: 80, w: 40, h: 40 }, maxSizeIn: '1.25" tall' },
     ],
     personalization: {},
   },
