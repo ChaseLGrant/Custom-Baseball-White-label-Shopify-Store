@@ -9,7 +9,7 @@ export function MilestoneTracker({ status }: { status: string }) {
         const active = i === current && !done;
         return (
           <li key={m.key} className="flex flex-col items-center text-center">
-            <span className={`grid h-8 w-8 place-items-center rounded-full text-sm font-bold ${done ? "bg-emerald-500 text-white" : active ? "bg-accent-500 text-white ring-4 ring-accent-500/20" : "bg-slate-200 text-slate-500"}`}>
+            <span className={`grid h-8 w-8 place-items-center rounded-full text-sm font-bold ${done ? "bg-accent-500 text-black" : active ? "bg-accent-500 text-black ring-4 ring-accent-500/20" : "bg-slate-200 text-slate-500"}`}>
               {done ? "✓" : i + 1}
             </span>
             <span className={`mt-1.5 text-xs font-medium ${active ? "text-slate-900" : "text-slate-500"}`}>{m.label}</span>

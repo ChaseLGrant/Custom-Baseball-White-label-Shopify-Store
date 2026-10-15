@@ -1,54 +1,110 @@
 @import "tailwindcss";
 
+/*
+ * Club Custom palette: black and electric green.
+ * The gray scale is deliberately inverted (slate-50 is the darkest, slate-900
+ * the lightest) so every "text-slate-900 on bg-slate-50" style reads as light
+ * text on a black page across the whole app.
+ */
 @theme {
-  /* Ink (near-black) scale for text, dark surfaces and primary buttons. */
-  --color-brand-50: #eef2ff;
-  --color-brand-100: #dfe6ff;
-  --color-brand-200: #c3cffd;
-  --color-brand-600: #3157f5;
-  --color-brand-700: #2443c9;
-  --color-brand-800: #1b1f27;
-  --color-brand-900: #0c0e13;
-  /* Electric orange: the one action color. */
-  --color-accent-400: #ff7a45;
-  --color-accent-500: #ff5a1f;
-  --color-accent-600: #e8480f;
+  --color-surface: #121417;
+
+  --color-slate-50: #0a0b0d;
+  --color-slate-100: #181b1f;
+  --color-slate-200: #24282d;
+  --color-slate-300: #343a40;
+  --color-slate-400: #6c747c;
+  --color-slate-500: #8f979f;
+  --color-slate-600: #adb4ba;
+  --color-slate-700: #c9ced3;
+  --color-slate-800: #e3e6e9;
+  --color-slate-900: #f5f7f8;
+
+  /* Electric green — the one action color. Text on it is black. */
+  --color-accent-400: #72ffb0;
+  --color-accent-500: #2bff88;
+  --color-accent-600: #16e173;
+
+  --color-brand-50: #0d1f15;
+  --color-brand-100: #12301f;
+  --color-brand-200: #1b4a30;
+  --color-brand-600: #2bff88;
+  --color-brand-700: #2bff88;
+  --color-brand-800: #1c2025;
+  --color-brand-900: #050607;
+
+  /* Status tints tuned for a dark background */
+  --color-emerald-50: #0c2217;
+  --color-emerald-200: #1d4a32;
+  --color-emerald-500: #2bff88;
+  --color-emerald-600: #4ff29a;
+  --color-emerald-700: #6ff5ad;
+  --color-emerald-900: #b5fad3;
+  --color-emerald-950: #d8fde8;
+  --color-amber-50: #261d07;
+  --color-amber-200: #4d3a10;
+  --color-amber-300: #6e5416;
+  --color-amber-700: #ffcc55;
+  --color-amber-800: #ffd56f;
+  --color-amber-900: #ffe2a0;
+  --color-amber-950: #fff0cc;
+  --color-red-50: #2a0e10;
+  --color-red-200: #5a1d21;
+  --color-red-600: #ff6b70;
+  --color-red-700: #ff8a8e;
+  --color-red-800: #ffa3a6;
+  --color-red-950: #ffd6d7;
+  --color-blue-50: #0d1729;
+  --color-blue-100: #142443;
+  --color-blue-700: #8fb6ff;
+  --color-blue-900: #c4d7ff;
+  --color-blue-950: #e0eaff;
+  --color-violet-50: #1a1230;
+  --color-violet-700: #c3a8ff;
+  --color-violet-900: #e0d4ff;
+
   --font-sans: "Inter Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   --font-display: "Barlow Condensed", "Inter Variable", ui-sans-serif, sans-serif;
 }
 
+:root { color-scheme: dark; }
+
 body {
-  @apply bg-[#f6f7f9] text-slate-900 antialiased;
+  @apply bg-slate-50 text-slate-900 antialiased;
   font-feature-settings: "cv11", "ss01";
 }
+
+::selection { background: var(--color-accent-500); color: #000; }
 
 /* Big athletic headlines */
 .font-display {
   font-family: var(--font-display);
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.005em;
   line-height: 0.92;
 }
 
-/* Soft studio backdrop behind product mockups */
+/* Product backdrops */
 .studio {
-  background: radial-gradient(120% 90% at 50% 0%, #ffffff 0%, #eef1f5 55%, #e3e7ee 100%);
+  background: radial-gradient(120% 95% at 50% 0%, #22262b 0%, #16191c 55%, #101215 100%);
 }
 .studio-dark {
-  background: radial-gradient(120% 90% at 50% 10%, #2a2f3a 0%, #14171d 60%, #0c0e13 100%);
+  background:
+    radial-gradient(60% 60% at 75% 35%, rgba(43, 255, 136, 0.08) 0%, rgba(43, 255, 136, 0) 70%),
+    radial-gradient(120% 90% at 50% 0%, #121417 0%, #08090a 70%);
 }
 
 @layer base {
   input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="tel"],
   input:not([type]), select, textarea {
-    @apply w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm shadow-[0_1px_2px_rgba(16,24,40,.04)]
-      transition placeholder:text-slate-400 focus:border-brand-600 focus:ring-4 focus:ring-brand-100 focus:outline-none disabled:bg-slate-100;
+    @apply w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900
+      transition placeholder:text-slate-400 focus:border-accent-500 focus:ring-4 focus:ring-accent-500/15 focus:outline-none disabled:opacity-60;
   }
   input[type="checkbox"], input[type="radio"] { accent-color: var(--color-accent-500); }
   input[type="file"] {
-    @apply block w-full text-sm text-slate-600 file:mr-3 file:rounded-full file:border-0 file:bg-slate-900
-      file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white hover:file:bg-slate-700;
+    @apply block w-full text-sm text-slate-600 file:mr-3 file:rounded-full file:border-0 file:bg-accent-500
+      file:px-4 file:py-2 file:text-sm file:font-semibold file:text-black hover:file:bg-accent-400;
   }
   label { @apply text-sm font-medium text-slate-700; }
 }

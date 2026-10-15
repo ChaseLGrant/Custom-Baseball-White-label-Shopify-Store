@@ -3,7 +3,6 @@ import { CATALOG } from "@/lib/catalog";
 import "@fontsource-variable/inter";
 import "@fontsource/barlow-condensed/700.css";
 import "@fontsource/barlow-condensed/800.css";
-import "@fontsource/barlow-condensed/800-italic.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,7 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="min-h-screen">
         {CATALOG.isSample && (
-          <div className="bg-amber-300 px-4 py-1 text-center text-[11px] font-semibold tracking-wide text-amber-950">
+          <div className="border-b border-slate-200 bg-black px-4 py-1.5 text-center text-[11px] font-semibold tracking-widest text-accent-500">
             PREVIEW — prices shown are samples, not real supplier pricing
           </div>
         )}

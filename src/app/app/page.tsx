@@ -58,9 +58,9 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2" id="new-order">
           <Link href="/order" className="studio-dark group relative block overflow-hidden rounded-3xl p-8 text-white transition hover:shadow-2xl">
-            <div className="absolute -right-10 -top-10 h-56 w-56 rounded-full bg-accent-500/30 blur-3xl transition group-hover:bg-accent-500/50" />
-            <p className="font-display text-5xl italic">New order <span className="text-accent-500">→</span></p>
-            <p className="mt-2 text-slate-300">
+            <div className="absolute -right-10 -top-10 h-56 w-56 rounded-full bg-accent-500/10 blur-3xl transition group-hover:bg-accent-500/20" />
+            <p className="font-display text-5xl">New order <span className="text-accent-500">→</span></p>
+            <p className="mt-2 text-slate-600">
               {logos > 0 && rosterCount > 0
                 ? "Your logo and roster are saved. Pick products and pay."
                 : "Drop your logo and roster, see your price, pay."}
@@ -91,7 +91,7 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
             {steps.map((s) => (
               <li key={s.label}>
                 <Link href={s.href} className="flex items-start gap-3 rounded-md px-2 py-2 hover:bg-slate-50">
-                  <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-xs ${s.done ? "bg-emerald-500 text-white" : "border-2 border-slate-300"}`}>{s.done ? "✓" : ""}</span>
+                  <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-xs ${s.done ? "bg-accent-500 text-black" : "border-2 border-slate-300"}`}>{s.done ? "✓" : ""}</span>
                   <span>
                     <span className={`block text-sm font-medium ${s.done ? "text-slate-400 line-through" : ""}`}>{s.label}</span>
                     {!s.done && <span className="block text-xs text-slate-500">{s.hint}</span>}

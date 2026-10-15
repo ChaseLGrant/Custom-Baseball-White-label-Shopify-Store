@@ -18,7 +18,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
         <p className="mt-3 max-w-2xl text-lg text-slate-500">
           Every price, minimum and option is right here — no quote request. Prices drop automatically as your program&apos;s total quantity grows.
         </p>
-        <nav className="sticky top-[60px] z-30 -mx-5 mt-8 flex gap-2 overflow-x-auto bg-[#f6f7f9]/90 px-5 py-3 backdrop-blur">
+        <nav className="sticky top-[60px] z-30 -mx-5 mt-8 flex gap-2 overflow-x-auto bg-slate-50/90 px-5 py-3 backdrop-blur">
           <Pill href="/catalog" on={!active}>All</Pill>
           {GROUPS.map((g) => <Pill key={g.id} href={`/catalog?group=${g.id}`} on={active?.id === g.id}>{g.label}</Pill>)}
         </nav>
@@ -49,7 +49,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
 
 function Pill({ href, on, children }: { href: string; on: boolean; children: React.ReactNode }) {
   return (
-    <Link href={href} className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition ${on ? "bg-brand-900 text-white" : "bg-white text-slate-700 ring-1 ring-slate-200 hover:ring-slate-300"}`}>
+    <Link href={href} className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition ${on ? "bg-brand-900 text-white" : "bg-surface text-slate-700 ring-1 ring-slate-200 hover:ring-slate-300"}`}>
       {children}
     </Link>
   );

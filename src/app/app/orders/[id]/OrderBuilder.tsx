@@ -234,7 +234,7 @@ export function OrderBuilder({ order, initialLines, teams, logos, designs: initi
       </aside>
 
       {/* Phones: keep the total and the next step always in reach. */}
-      <div className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 border-t border-slate-200 bg-white px-4 py-3 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-20 flex items-center justify-between gap-3 border-t border-slate-200 bg-surface px-4 py-3 shadow-[0_-4px_12px_rgba(0,0,0,0.06)] lg:hidden">
         <div>
           <p className="text-lg font-black leading-tight">{formatMoney(price.totalCents)}</p>
           <p className="text-xs text-slate-500">{errors.length ? `${errors.length} to fix` : `${price.totalQuantity} pieces`}</p>

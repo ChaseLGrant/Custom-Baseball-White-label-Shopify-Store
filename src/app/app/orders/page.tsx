@@ -31,13 +31,13 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
         actions={
           <form action={createOrder}>
             <input type="hidden" name="name" value="" />
-            <button className="rounded-md bg-accent-500 px-4 py-2 text-sm font-semibold text-white hover:bg-accent-600">New order</button>
+            <button className="rounded-md bg-accent-500 px-4 py-2 text-sm font-semibold text-black hover:bg-accent-600">New order</button>
           </form>
         }
       />
       <div className="mb-4 flex flex-wrap gap-2 text-sm">
         {Object.entries(FILTERS).map(([k, v]) => (
-          <Link key={k} href={`/app/orders?f=${k}`} className={`rounded-full px-3 py-1 ${f === k ? "bg-brand-900 text-white" : "bg-white ring-1 ring-slate-200"}`}>{v.label}</Link>
+          <Link key={k} href={`/app/orders?f=${k}`} className={`rounded-full px-3 py-1 ${f === k ? "bg-brand-900 text-white" : "bg-surface ring-1 ring-slate-200"}`}>{v.label}</Link>
         ))}
       </div>
       {orders.length === 0 ? (

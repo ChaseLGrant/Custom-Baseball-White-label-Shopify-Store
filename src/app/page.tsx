@@ -47,10 +47,10 @@ export default function Home() {
               <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-widest text-accent-400 ring-1 ring-white/15">
                 Custom team gear · No sales calls
               </p>
-              <h1 className="font-display mt-6 text-6xl italic sm:text-7xl lg:text-[88px]">
+              <h1 className="font-display mt-6 text-6xl sm:text-7xl lg:text-[88px]">
                 Outfit the<br />whole team.<br /><span className="text-accent-500">In two clicks.</span>
               </h1>
-              <p className="mt-6 max-w-lg text-lg text-slate-300">
+              <p className="mt-6 max-w-lg text-lg text-slate-600">
                 Drop in your logo and roster. See every player&apos;s jersey, helmet, gloves and grips with your logo on them — and the exact price. Pay online. Done.
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
@@ -66,13 +66,13 @@ export default function Home() {
 
             {/* Product collage */}
             <div className="relative mx-auto aspect-square w-full max-w-[560px]">
-              <div className="absolute inset-[8%] rounded-full bg-accent-500/20 blur-3xl" />
+              <div className="absolute inset-[12%] rounded-full bg-accent-500/10 blur-3xl" />
               <Mock id="batting-helmet" color="black" className="absolute left-[2%] top-[4%] w-[58%] drop-shadow-2xl" />
               <Mock id="jersey-full-button" color="white" className="absolute right-[0%] top-[0%] w-[44%] drop-shadow-2xl" />
               <Mock id="batting-gloves" color="black" className="absolute bottom-[4%] left-[6%] w-[34%] drop-shadow-2xl" />
               <Mock id="team-socks" color="black" className="absolute bottom-[0%] left-[36%] w-[30%] drop-shadow-2xl" />
-              <Mock id="bat-grip" color="orange" className="absolute bottom-[6%] right-[4%] w-[26%] drop-shadow-2xl" />
-              <div className="absolute right-[2%] top-[46%] rounded-2xl bg-white px-4 py-3 text-slate-900 shadow-2xl">
+              <Mock id="bat-grip" color="black" className="absolute bottom-[6%] right-[4%] w-[26%] drop-shadow-2xl" />
+              <div className="absolute right-[2%] top-[46%] rounded-2xl bg-surface px-4 py-3 text-slate-900 shadow-2xl">
                 <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-500">25 players · full kit</p>
                 <p className="font-display text-3xl">{formatMoney(kitPrice()).replace(/\.00$/, "")}</p>
                 <p className="text-xs text-emerald-600">Instant price · free shipping</p>
@@ -91,7 +91,7 @@ export default function Home() {
             {GROUPS.map((g) => {
               const [id, color] = GROUP_HERO[g.id];
               return (
-                <Link key={g.id} href={`/catalog?group=${g.id}`} className="group overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200/80 transition hover:-translate-y-1 hover:shadow-xl">
+                <Link key={g.id} href={`/catalog?group=${g.id}`} className="group overflow-hidden rounded-3xl bg-surface ring-1 ring-slate-200/80 transition hover:-translate-y-1 hover:shadow-xl">
                   <div className="studio p-6"><Mock id={id} color={color} className="mx-auto w-4/5 transition duration-300 group-hover:scale-105" /></div>
                   <div className="p-5">
                     <p className="font-display text-2xl">{g.label}</p>
@@ -104,7 +104,7 @@ export default function Home() {
         </section>
 
         {/* How it works */}
-        <section id="how" className="bg-white py-20">
+        <section id="how" className="bg-surface py-20">
           <div className="mx-auto max-w-7xl px-5">
             <h2 className="font-display text-5xl">How it works</h2>
             <div className="mt-10 grid gap-6 md:grid-cols-3">
@@ -113,7 +113,7 @@ export default function Home() {
                 ["02", "Drop your roster", "Any spreadsheet. Names, numbers and sizes are read automatically and matched to every product."],
                 ["03", "Pay & approve", "See the exact total, pay securely through Shopify, then approve your production proof online."],
               ].map(([n, t, b]) => (
-                <div key={n} className="rounded-3xl bg-[#f6f7f9] p-8">
+                <div key={n} className="rounded-3xl bg-slate-50 p-8">
                   <p className="font-display text-6xl text-accent-500">{n}</p>
                   <p className="mt-4 text-xl font-bold">{t}</p>
                   <p className="mt-2 text-slate-600">{b}</p>
@@ -137,7 +137,7 @@ export default function Home() {
               {[["eye-black", "white"], ["pine-tar", "black"], ["bat-grip", "black"], ["wrist-tape", "black"]].map(([id, color]) => {
                 const p = getProduct(id)!;
                 return (
-                  <Link key={id} href={`/catalog/${id}`} className="group rounded-3xl bg-white p-3 ring-1 ring-slate-200/80 transition hover:shadow-lg">
+                  <Link key={id} href={`/catalog/${id}`} className="group rounded-3xl bg-surface p-3 ring-1 ring-slate-200/80 transition hover:shadow-lg">
                     <div className="studio rounded-2xl p-2"><Mock id={id} color={color} numbers={id === "eye-black"} className="transition group-hover:scale-105" /></div>
                     <p className="mt-2 text-sm font-semibold leading-tight">{p.name}</p>
                     <p className="text-xs text-slate-500">from {formatMoney(lowestUnitCents(p) ?? 0)}</p>
@@ -149,7 +149,7 @@ export default function Home() {
         </section>
 
         {/* Programs */}
-        <section className="bg-white py-20">
+        <section className="bg-surface py-20">
           <div className="mx-auto grid max-w-7xl gap-10 px-5 lg:grid-cols-2">
             <div>
               <h2 className="font-display text-5xl">Built for whole programs</h2>
@@ -164,7 +164,7 @@ export default function Home() {
                 ["Online proofs", "Approve artwork without email"],
                 ["Live tracking", "Production status & shipping"],
               ].map(([t, b]) => (
-                <li key={t} className="rounded-2xl bg-[#f6f7f9] p-5">
+                <li key={t} className="rounded-2xl bg-slate-50 p-5">
                   <p className="font-semibold">{t}</p>
                   <p className="text-sm text-slate-500">{b}</p>
                 </li>
@@ -176,7 +176,7 @@ export default function Home() {
         {/* CTA */}
         <section className="studio-dark text-white">
           <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-6 px-5 py-16">
-            <h2 className="font-display text-5xl italic">Ready when your team is.</h2>
+            <h2 className="font-display text-5xl">Ready when your team is.</h2>
             <ButtonLink href="/order" variant="accent" className="px-8 py-4 text-base">Start your order →</ButtonLink>
           </div>
         </section>

@@ -22,14 +22,14 @@ export default async function PortalLayout({ children }: { children: React.React
   ];
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-white/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-30 border-b border-slate-200/70 bg-surface/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-x-6 gap-y-2 px-5 py-3">
           <Link href="/app"><Logo /></Link>
           <nav className="order-3 flex w-full gap-1 overflow-x-auto text-sm md:order-none md:w-auto">
             {nav.map((n) => <NavLink key={n.href} {...n} />)}
           </nav>
           <div className="ml-auto flex items-center gap-3 text-sm">
-            <Link href="/order" className="rounded-full bg-accent-500 px-4 py-2 font-semibold text-white shadow-[0_6px_20px_-6px_rgba(255,90,31,.6)] hover:bg-accent-600">New order</Link>
+            <Link href="/order" className="rounded-full bg-accent-500 px-4 py-2 font-semibold text-black shadow-[0_6px_20px_-6px_rgba(43,255,136,.6)] hover:bg-accent-600">New order</Link>
             {user.memberships.length > 1 ? (
               <form action={switchOrganization} className="flex items-center gap-1">
                 <select name="orgId" defaultValue={org.id} className="!w-auto !py-1" aria-label="Organization">

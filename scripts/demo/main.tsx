@@ -102,7 +102,7 @@ function DoneScreen() {
         <h1 className="font-display mt-2 text-5xl">This is where checkout opens</h1>
         <p className="mt-3 text-lg text-slate-600">On the live site the coach lands on Shopify&apos;s secure checkout right now. Nothing is charged in this preview.</p>
         {summary && (
-          <div className="mt-8 rounded-3xl bg-white p-6 ring-1 ring-slate-200/80">
+          <div className="mt-8 rounded-3xl bg-surface p-6 ring-1 ring-slate-200/80">
             <ul className="space-y-2 text-sm">
               {summary.price.lines.map((l) => (
                 <li key={l.key} className="flex justify-between gap-3"><span className="text-slate-600">{l.quantity} × {l.productName}</span><span className="font-semibold tabular-nums">{formatMoney(l.lineTotalCents)}</span></li>
@@ -120,7 +120,7 @@ function DoneScreen() {
         <h2 className="mt-12 text-xl font-bold">What happens next</h2>
         <ol className="mt-4 grid gap-4 sm:grid-cols-2">
           {steps.map(([t, b], i) => (
-            <li key={t} className="rounded-2xl bg-white p-5 ring-1 ring-slate-200/80">
+            <li key={t} className="rounded-2xl bg-surface p-5 ring-1 ring-slate-200/80">
               <p className="text-sm font-semibold text-accent-600">Step {i + 1}</p>
               <p className="mt-1 font-semibold">{t}</p>
               <p className="mt-1 text-sm text-slate-600">{b}</p>
@@ -150,7 +150,7 @@ function LiveOnly() {
 
 function LinkButton({ href, children }: { href: string; children: ReactNode }) {
   const { go } = useRouterHook();
-  return <button type="button" onClick={() => go(href)} className="mt-8 rounded-full bg-accent-500 px-6 py-3 font-semibold text-white hover:bg-accent-600">{children}</button>;
+  return <button type="button" onClick={() => go(href)} className="mt-8 rounded-full bg-accent-500 px-6 py-3 font-semibold text-black hover:bg-accent-600">{children}</button>;
 }
 
 function Screen({ route }: { route: Route }) {

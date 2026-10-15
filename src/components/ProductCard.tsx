@@ -13,7 +13,7 @@ export function showcaseColor(p: Product) {
 export function ProductCard({ product: p }: { product: Product }) {
   const low = lowestUnitCents(p);
   return (
-    <Link href={`/catalog/${p.id}`} className="group flex flex-col overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200/80 transition hover:-translate-y-1 hover:shadow-xl">
+    <Link href={`/catalog/${p.id}`} className="group flex flex-col overflow-hidden rounded-3xl bg-surface ring-1 ring-slate-200/80 transition hover:-translate-y-1 hover:shadow-xl">
       <div className="studio relative p-6">
         <ProductPreview
           product={p}

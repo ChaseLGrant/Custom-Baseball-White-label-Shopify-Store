@@ -6,10 +6,10 @@ const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).jo
 
 type Variant = "primary" | "secondary" | "danger" | "ghost" | "accent";
 const VARIANTS: Record<Variant, string> = {
-  primary: "bg-brand-900 text-white hover:bg-brand-800 shadow-sm",
-  accent: "bg-accent-500 text-white hover:bg-accent-600 shadow-[0_6px_20px_-6px_rgba(255,90,31,.6)]",
-  secondary: "bg-white text-slate-900 ring-1 ring-slate-200 hover:bg-slate-50 shadow-sm",
-  danger: "bg-white text-red-600 ring-1 ring-red-200 hover:bg-red-50",
+  primary: "bg-slate-900 text-slate-50 hover:bg-slate-700 shadow-sm",
+  accent: "bg-accent-500 text-black hover:bg-accent-600 shadow-[0_6px_20px_-6px_rgba(43,255,136,.6)]",
+  secondary: "bg-surface text-slate-900 ring-1 ring-slate-200 hover:bg-slate-50 shadow-sm",
+  danger: "bg-surface text-red-600 ring-1 ring-red-200 hover:bg-red-50",
   ghost: "text-slate-700 hover:bg-slate-100",
 };
 const BTN =
@@ -25,7 +25,7 @@ export function ButtonLink({ variant = "primary", className, ...props }: Compone
 
 export function Card({ className, children, ...rest }: ComponentProps<"div">) {
   return (
-    <div className={cx("rounded-2xl border border-slate-200/80 bg-white shadow-[0_1px_3px_rgba(16,24,40,.05)]", className)} {...rest}>
+    <div className={cx("rounded-2xl border border-slate-200/80 bg-surface shadow-[0_1px_3px_rgba(16,24,40,.05)]", className)} {...rest}>
       {children}
     </div>
   );
@@ -110,7 +110,7 @@ export function PageHeader({ title, description, actions, back }: { title: React
 
 export function EmptyState({ title, description, action }: { title: string; description?: string; action?: ReactNode }) {
   return (
-    <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-white/50 px-6 py-12 text-center">
+    <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-surface/50 px-6 py-12 text-center">
       <p className="font-semibold text-slate-800">{title}</p>
       {description && <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">{description}</p>}
       {action && <div className="mt-4">{action}</div>}

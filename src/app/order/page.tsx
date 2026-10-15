@@ -28,7 +28,7 @@ export default async function OrderPage({ searchParams }: { searchParams: Promis
 
   return (
     <div className="min-h-screen">
-      <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-white/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-surface/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5">
           <Link href={user ? "/app" : "/"}><Logo /></Link>
           <nav className="flex items-center gap-4 text-sm font-medium text-slate-600">

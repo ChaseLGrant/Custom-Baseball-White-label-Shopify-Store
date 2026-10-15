@@ -65,7 +65,7 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
             <div className="mt-2 flex flex-wrap gap-2" aria-label="Colors">
               {product.colors.map((c) => (
                 <Link key={c.id} href={`?color=${c.id}`} scroll={false} title={c.name}
-                  className={`h-9 w-9 rounded-full ring-offset-2 transition ${c.id === colorId ? "ring-2 ring-slate-900" : "ring-1 ring-slate-200 hover:ring-slate-400"}`}
+                  className={`h-9 w-9 rounded-full ring-offset-2 transition ${c.id === colorId ? "ring-2 ring-accent-500" : "ring-1 ring-slate-200 hover:ring-slate-400"}`}
                   style={{ background: c.hex }}>
                   <span className="sr-only">{c.name}</span>
                 </Link>
@@ -79,7 +79,7 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
                 ["Sizes", product.sizes.join(" · ")],
                 ["Your logo", product.locations.map((l) => l.label).join(", ")],
               ].map(([k, v]) => (
-                <div key={k} className="rounded-2xl bg-white p-3.5 ring-1 ring-slate-200/80">
+                <div key={k} className="rounded-2xl bg-surface p-3.5 ring-1 ring-slate-200/80">
                   <dt className="text-xs text-slate-500">{k}</dt>
                   <dd className="mt-0.5 font-semibold">{v}</dd>
                 </div>
@@ -93,13 +93,13 @@ export default async function ProductPage({ params, searchParams }: { params: Pr
         </div>
 
         <div className="mt-16 grid gap-6 md:grid-cols-2">
-          <div className="rounded-3xl bg-white p-6 ring-1 ring-slate-200/80">
+          <div className="rounded-3xl bg-surface p-6 ring-1 ring-slate-200/80">
             <h2 className="text-lg font-bold">Price per {product.unitLabel ?? "piece"}</h2>
             <p className="mb-3 text-sm text-slate-500">Based on your order&apos;s total quantity of this product — across all teams.</p>
             <PriceTiers product={product} />
             {upcharges.length > 0 && <p className="mt-3 text-sm text-slate-500">Size upcharges: {upcharges.map(([s, c]) => `${s} +${formatMoney(c)}`).join(", ")}</p>}
           </div>
-          <div className="rounded-3xl bg-white p-6 ring-1 ring-slate-200/80">
+          <div className="rounded-3xl bg-surface p-6 ring-1 ring-slate-200/80">
             <h2 className="mb-3 text-lg font-bold">Logo & personalization</h2>
             <DecorationPricing product={product} />
           </div>

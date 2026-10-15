@@ -162,7 +162,7 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
           {logoFile ? (
             <div className="flex items-center gap-4">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={logoUrl!} alt="Your logo" className="h-20 w-20 rounded-2xl bg-white object-contain p-2 ring-1 ring-slate-200" />
+              <img src={logoUrl!} alt="Your logo" className="h-20 w-20 rounded-2xl bg-surface object-contain p-2 ring-1 ring-slate-200" />
               <div>
                 <p className="font-semibold">{logoFile.name}</p>
                 <button type="button" className="text-sm font-medium text-slate-500 underline hover:text-slate-900" onClick={() => { setLogoFile(null); setLogoUrl(null); }}>Change</button>
@@ -172,7 +172,7 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
             <div className="flex flex-wrap items-center gap-3">
               {logos.map((l) => (
                 <button type="button" key={l.id} onClick={() => setSavedLogoId(l.id)} aria-label={`Use ${l.name}`} aria-pressed={savedLogoId === l.id}
-                  className={cx("grid h-20 w-20 place-items-center rounded-2xl bg-white p-2 transition", savedLogoId === l.id ? "ring-2 ring-slate-900" : "ring-1 ring-slate-200 hover:ring-slate-400")}>
+                  className={cx("grid h-20 w-20 place-items-center rounded-2xl bg-surface p-2 transition", savedLogoId === l.id ? "ring-2 ring-accent-500" : "ring-1 ring-slate-200 hover:ring-slate-400")}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={l.url} alt={l.name} className="max-h-full max-w-full object-contain" />
                 </button>
@@ -239,7 +239,7 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
               return (
                 <button type="button" key={g.id} onClick={() => setTab(g.id)}
                   className={cx("whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition", tab === g.id ? "bg-brand-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200")}>
-                  {g.label}{count > 0 && <span className={cx("ml-1.5 rounded-full px-1.5 text-xs", tab === g.id ? "bg-accent-500" : "bg-white text-slate-900")}>{count}</span>}
+                  {g.label}{count > 0 && <span className={cx("ml-1.5 rounded-full px-1.5 text-xs", tab === g.id ? "bg-accent-500" : "bg-surface text-slate-900")}>{count}</span>}
                 </button>
               );
             })}
@@ -256,7 +256,7 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
             <span className="mr-1 text-sm font-semibold text-slate-700">Team color</span>
             {COLORS.map((c) => (
               <button key={c.id} type="button" title={c.name} aria-label={c.name} aria-pressed={color === c.id} onClick={() => setColor(c.id)}
-                className={cx("h-8 w-8 rounded-full ring-offset-2 transition", color === c.id ? "ring-2 ring-slate-900" : "ring-1 ring-black/10 hover:scale-110")} style={{ background: c.hex }} />
+                className={cx("h-8 w-8 rounded-full ring-offset-2 transition", color === c.id ? "ring-2 ring-accent-500" : "ring-1 ring-black/10 hover:scale-110")} style={{ background: c.hex }} />
             ))}
           </div>
           {hasNames && (
@@ -290,7 +290,7 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
 
       {/* Order summary (desktop) */}
       <aside className="hidden lg:block">
-        <div className="sticky top-24 overflow-hidden rounded-3xl bg-white ring-1 ring-slate-200/80 shadow-xl shadow-slate-900/5">
+        <div className="sticky top-24 overflow-hidden rounded-3xl bg-surface ring-1 ring-slate-200/80 shadow-xl shadow-black/40">
           <div className="studio px-8 pb-4 pt-6">
             <ProductPreview product={focusProduct} colorId={focusConfig?.color ?? pickColor(focusProduct, color)} decorations={focusConfig?.decorations ?? []} logoUrls={logoUrls}
               names={focusConfig?.names} numbers={focusConfig?.numbers} sampleName={sample?.name.split(" ").at(-1) || undefined} sampleNumber={sample?.number || undefined} />
@@ -324,7 +324,7 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
             </div>
             <p className="text-right text-xs text-slate-400">+ sales tax unless tax-exempt</p>
             <button type="submit" disabled={!!missing || pending}
-              className="mt-5 w-full rounded-full bg-accent-500 px-6 py-4 text-base font-bold text-white shadow-[0_8px_24px_-8px_rgba(255,90,31,.7)] transition hover:bg-accent-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:shadow-none">
+              className="mt-5 w-full rounded-full bg-accent-500 px-6 py-4 text-base font-bold text-black shadow-[0_8px_24px_-8px_rgba(43,255,136,.7)] transition hover:bg-accent-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:shadow-none">
               {payLabel}{!missing && !pending && " →"}
             </button>
             {state.error && <p role="alert" className="mt-2 text-sm text-red-600">{state.error}</p>}
@@ -334,7 +334,7 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
       </aside>
 
       {/* Pay bar (phones & tablets) */}
-      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-white/95 backdrop-blur lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-30 border-t border-slate-200 bg-surface/95 backdrop-blur lg:hidden">
         <div className="mx-auto flex max-w-3xl items-center justify-between gap-4 px-5 py-3">
           <div>
             <p className="font-display text-3xl">{formatMoney(price.totalCents)}</p>
@@ -342,7 +342,7 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
           </div>
           <div className="text-right">
             <button type="submit" disabled={!!missing || pending}
-              className="rounded-full bg-accent-500 px-6 py-3 text-sm font-bold text-white transition hover:bg-accent-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500">
+              className="rounded-full bg-accent-500 px-6 py-3 text-sm font-bold text-black transition hover:bg-accent-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500">
               {payLabel}
             </button>
             {state.error && <p role="alert" className="mt-1 max-w-xs text-xs text-red-600">{state.error}</p>}
@@ -355,9 +355,9 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
 
 function Step({ n, title, done, optional, children }: { n: number; title: string; done: boolean; optional?: boolean; children: React.ReactNode }) {
   return (
-    <section className="rounded-3xl bg-white p-6 ring-1 ring-slate-200/80 sm:p-7">
+    <section className="rounded-3xl bg-surface p-6 ring-1 ring-slate-200/80 sm:p-7">
       <h2 className="mb-4 flex items-center gap-3 text-lg font-bold">
-        <span className={cx("grid h-8 w-8 place-items-center rounded-full text-sm font-bold transition", done ? "bg-emerald-500 text-white" : "bg-slate-900 text-white")}>{done ? "✓" : n}</span>
+        <span className={cx("grid h-8 w-8 place-items-center rounded-full text-sm font-bold transition", done ? "bg-accent-500 text-black" : "bg-slate-200 text-slate-900")}>{done ? "✓" : n}</span>
         {title}
         {optional && <span className="text-sm font-normal text-slate-400">optional</span>}
       </h2>
@@ -376,11 +376,11 @@ function DropZone({ label, hint, accept, onFile, small, inline }: { label: strin
       className={cx(
         "flex cursor-pointer flex-col items-center justify-center text-center transition",
         inline ? "rounded-full px-3 py-1 text-sm font-medium text-slate-500 underline hover:text-slate-900"
-          : cx("rounded-2xl border-2 border-dashed", small ? "h-20 px-4 text-sm" : "px-6 py-12", over ? "border-accent-500 bg-accent-500/5" : "border-slate-200 bg-slate-50/60 hover:border-slate-400 hover:bg-white"),
+          : cx("rounded-2xl border-2 border-dashed", small ? "h-20 px-4 text-sm" : "px-6 py-12", over ? "border-accent-500 bg-accent-500/5" : "border-slate-200 bg-slate-50/60 hover:border-slate-400 hover:bg-surface"),
       )}
     >
       <input type="file" accept={accept} className="sr-only" onChange={(e) => onFile(e.target.files?.[0])} />
-      {!inline && !small && <span className="mb-2 grid h-11 w-11 place-items-center rounded-full bg-white text-xl shadow-sm ring-1 ring-slate-200">↑</span>}
+      {!inline && !small && <span className="mb-2 grid h-11 w-11 place-items-center rounded-full bg-surface text-xl shadow-sm ring-1 ring-slate-200">↑</span>}
       <span className={cx(!inline && "font-semibold text-slate-900", !small && !inline && "text-base")}>{label}</span>
       {hint && <span className="mt-1 text-xs font-normal text-slate-500">{hint}</span>}
     </label>
@@ -395,13 +395,13 @@ function GearTile({ product, on, onToggle, color, logoId, logoUrls, priced, qty,
   const low = lowestUnitCents(product);
   const team = product.orderUnit === "team";
   return (
-    <div className={cx("relative overflow-hidden rounded-2xl transition", on ? "bg-white ring-2 ring-slate-900" : "bg-white ring-1 ring-slate-200 hover:ring-slate-400")}>
+    <div className={cx("relative overflow-hidden rounded-2xl transition", on ? "bg-surface ring-2 ring-accent-500" : "bg-surface ring-1 ring-slate-200 hover:ring-slate-400")}>
       <button type="button" onClick={onToggle} aria-pressed={on} className="block w-full text-left">
         <div className="studio p-3">
           <ProductPreview product={product} colorId={pickColor(product, color)} single decorations={logoId && loc ? [{ location: loc.id, logoId }] : []} logoUrls={logoUrls}
             className="mx-auto w-[88%]" />
         </div>
-        <span className={cx("absolute right-2.5 top-2.5 grid h-7 w-7 place-items-center rounded-full text-sm font-bold transition", on ? "bg-slate-900 text-white" : "bg-white text-slate-400 ring-1 ring-slate-200")}>{on ? "✓" : "+"}</span>
+        <span className={cx("absolute right-2.5 top-2.5 grid h-7 w-7 place-items-center rounded-full text-sm font-bold transition", on ? "bg-accent-500 text-black" : "bg-surface text-slate-400 ring-1 ring-slate-200")}>{on ? "✓" : "+"}</span>
         <span className="block px-3 pt-2 text-sm font-semibold leading-tight">{product.name}</span>
         <span className="block px-3 pb-3 text-xs text-slate-500">
           {on && priced?.quantity ? `${formatMoney(priced.effectiveUnitCents)} ${product.unitLabel ? "/ " + product.unitLabel : "each"}` : `from ${formatMoney(low ?? 0)} · min ${product.minQty}`}
