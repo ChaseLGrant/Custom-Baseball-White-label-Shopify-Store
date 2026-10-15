@@ -16,6 +16,8 @@ export async function previewRoster(fd: FormData): Promise<{ players: RosterRow[
 
 export async function placeQuickOrder(_prev: unknown, fd: FormData) {
   lastPayload = JSON.parse(String(fd.get("payload")));
+  const typed = (lastPayload as { manualRoster?: { name: string; number: string | null; size: string | null }[] | null }).manualRoster;
+  if (typed?.length) lastRoster = typed.map((p) => ({ name: p.name, number: p.number, size: p.size, topSize: null, bottomSize: null, hatSize: null }));
   onPlaced?.();
   return {};
 }

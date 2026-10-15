@@ -13,7 +13,7 @@ import { getProduct } from "../catalog";
 import { can, ORG_TYPES, SPORTS, type Role } from "../domain";
 import { quickLineConfig } from "../quick-config";
 import { action, str } from "./util";
-import type { RosterRow } from "../roster";
+import { normalizeSize, type RosterRow } from "../roster";
 
 /** Parse a dropped roster file so the page can show sizes and price instantly. Saves nothing. */
 export async function previewRoster(fd: FormData): Promise<{ players: RosterRow[]; problems: string[] }> {
@@ -38,6 +38,12 @@ const quickSchema = z.object({
   sport: z.string(),
   sizeRun: z.record(z.string(), z.number().int().min(0)),
   teamQty: z.record(z.string(), z.number().int().min(0).max(5000)).default({}),
+  // Roster typed in on the page (instead of a spreadsheet).
+  manualRoster: z
+    .array(z.object({ name: z.string().max(80), number: z.string().max(3).nullable(), size: z.string().max(10).nullable() }))
+    .max(1000)
+    .nullable()
+    .default(null),
 });
 
 export const placeQuickOrder = action(async (_prev: unknown, fd: FormData) => {
@@ -51,7 +57,11 @@ export const placeQuickOrder = action(async (_prev: unknown, fd: FormData) => {
   const hasRosterFile = !!rosterFile && rosterFile.size > 0;
 
   // Validate everything that can fail before creating anything.
-  const roster = hasRosterFile ? await parseRosterFile(rosterFile!) : null;
+  const roster = input.manualRoster?.length
+    ? { players: input.manualRoster.map(typedPlayer), problems: [] as string[] }
+    : hasRosterFile
+      ? await parseRosterFile(rosterFile!)
+      : null;
   if (roster && roster.players.length === 0) throw new Error(roster.problems.join(" ") || "We couldn't find any players in that file.");
 
   // --- Account (new coaches sign up right here) ---
@@ -159,6 +169,11 @@ export const placeQuickOrder = action(async (_prev: unknown, fd: FormData) => {
   if (result.status === "AWAITING_PAYMENT") redirect(result.checkoutUrl);
   redirect(`/app/orders/${order.id}?submitted=1`);
 });
+
+function typedPlayer(p: { name: string; number: string | null; size: string | null }): RosterRow {
+  const number = p.number?.replace(/[^0-9]/g, "").slice(0, 3) || null;
+  return { name: p.name.trim().slice(0, 80), number, size: normalizeSize(p.size), topSize: null, bottomSize: null, hatSize: null };
+}
 
 /** Two-click reorder: copy last order with today's prices and current roster, then go straight to payment. */
 export async function reorderAndPay(fd: FormData) {

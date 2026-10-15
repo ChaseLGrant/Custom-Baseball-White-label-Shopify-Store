@@ -5,7 +5,7 @@ import { useActionState, useMemo, useState, useTransition } from "react";
 import { CATALOG, GROUPS, UNIFORM_KIT_PRODUCT_IDS, getProduct, lowestUnitCents, type Product } from "@/lib/catalog";
 import { ORG_TYPES, formatMoney, lineConfigSchema } from "@/lib/domain";
 import { priceOrder } from "@/lib/pricing";
-import { buildLineItems, sizeBreakdown, type RosterPlayerLike } from "@/lib/roster";
+import { buildLineItems, normalizeSize, sizeBreakdown, type RosterPlayerLike } from "@/lib/roster";
 import { pickColor, quickLineConfig } from "@/lib/quick-config";
 import { placeQuickOrder, previewRoster } from "@/lib/actions/quick";
 import { ProductPreview } from "@/components/ProductPreview";
@@ -41,6 +41,9 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
   const [rosterProblems, setRosterProblems] = useState<string[]>([]);
   const [rosterLoading, setRosterLoading] = useState(false);
   const [useSizes, setUseSizes] = useState(false);
+  // Typed-in roster (null = not typing). editingTeam: the typed rows replace a saved team's roster.
+  const [manual, setManual] = useState<ManualRow[] | null>(null);
+  const [editingTeam, setEditingTeam] = useState(false);
   const [sizeRun, setSizeRun] = useState<Record<string, number>>({});
   const [teamName, setTeamName] = useState("");
 
@@ -56,7 +59,8 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
   const [pending, startTransition] = useTransition();
 
   const savedTeam = teams.find((t) => t.id === teamId) ?? null;
-  const players: RosterPlayerLike[] = useSizes ? [] : newPlayers ?? savedTeam?.roster ?? [];
+  const manualPlayers = useMemo(() => (manual ?? []).filter((r) => r.name.trim() || r.number.trim() || r.size).map(toPlayer), [manual]);
+  const players: RosterPlayerLike[] = useSizes ? [] : manual ? manualPlayers : newPlayers ?? savedTeam?.roster ?? [];
   const hasNames = players.some((p) => p.name);
   const logoId = logoFile ? NEW_LOGO : savedLogoId;
   const logoUrls = useMemo(
@@ -114,7 +118,7 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
   function submit(form: HTMLFormElement) {
     const fd = new FormData(form);
     if (logoFile) fd.set("logo", logoFile);
-    if (rosterFile && !useSizes) fd.set("roster", rosterFile);
+    if (rosterFile && !useSizes && !manual) fd.set("roster", rosterFile);
     if (orgId) fd.set("orgId", orgId);
     fd.set(
       "payload",
@@ -123,7 +127,8 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
         color,
         personalize: personalize && hasNames,
         existingLogoId: logoFile ? null : savedLogoId,
-        existingTeamId: rosterFile || useSizes ? null : teamId,
+        existingTeamId: useSizes || (manual ? !editingTeam : rosterFile) ? null : teamId,
+        manualRoster: manual && !useSizes ? manualPlayers.map((p) => ({ name: p.name, number: p.number, size: p.size })) : null,
         teamName: teamName || savedTeam?.name || orgName || "",
         sport: "BASEBALL",
         sizeRun: useSizes ? sizeRun : {},
@@ -186,7 +191,15 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
 
         {/* 2. Roster */}
         <Step n={2} title="Your roster" done={players.length > 0 || (useSizes && Object.values(sizeRun).some(Boolean))} optional={!needsPlayers}>
-          {useSizes ? (
+          {manual && !useSizes ? (
+            <ManualRoster
+              rows={manual}
+              onChange={setManual}
+              onDone={() => { setManual(null); setEditingTeam(false); }}
+              teamName={!editingTeam ? teamName : null}
+              onTeamName={setTeamName}
+            />
+          ) : useSizes ? (
             <div>
               <p className="mb-2 text-sm text-slate-600">How many of each size?</p>
               <div className="grid grid-cols-5 gap-2 sm:grid-cols-10">
@@ -210,6 +223,10 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
                     {teams.filter((t) => t.roster.length).map((t) => <option key={t.id} value={t.id}>{t.name}</option>)}
                   </select>
                 )}
+                <button type="button" className="text-sm font-medium text-slate-500 underline hover:text-slate-900"
+                  onClick={() => { setManual(players.map(fromPlayer)); setEditingTeam(!newPlayers && !!savedTeam); }}>
+                  Edit players
+                </button>
                 <DropZone inline accept=".csv,.xlsx,.tsv,.txt" label="Upload a different roster" onFile={onRoster} />
               </div>
               <p className="mt-3 text-sm text-slate-500">
@@ -226,7 +243,13 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
                 hint={<>Excel or CSV with names, numbers & sizes — any column names work · <a href="/samples/roster-template.csv" download className="underline" onClick={(e) => e.stopPropagation()}>template</a></>}
                 onFile={onRoster} />
               {rosterProblems.length > 0 && <p className="mt-2 text-sm text-red-600">{rosterProblems.join(" ")}</p>}
-              <button type="button" className="mt-3 text-sm font-medium text-slate-500 underline hover:text-slate-900" onClick={() => setUseSizes(true)}>No roster? Just enter sizes</button>
+              <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+                <button type="button" className="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-900 ring-1 ring-slate-200 hover:bg-slate-200"
+                  onClick={() => { setManual(Array.from({ length: 5 }, emptyRow)); setEditingTeam(false); }}>
+                  ✎ Type in players instead
+                </button>
+                <button type="button" className="text-sm font-medium text-slate-500 underline hover:text-slate-900" onClick={() => setUseSizes(true)}>Just enter quantities by size</button>
+              </div>
             </>
           )}
         </Step>
@@ -419,6 +442,113 @@ function GearTile({ product, on, onToggle, color, logoId, logoUrls, priced, qty,
           <span className="text-sm font-semibold">{qty} {product.unitLabel}s</span>
           <button type="button" aria-label="More" onClick={() => onQty(qty + (product.minQty >= 12 ? 12 : 1))} className="grid h-7 w-7 place-items-center rounded-full bg-slate-100 font-bold hover:bg-slate-200">+</button>
         </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Type-in roster
+// ---------------------------------------------------------------------------
+
+interface ManualRow { name: string; number: string; size: string }
+const emptyRow = (): ManualRow => ({ name: "", number: "", size: "" });
+const toPlayer = (r: ManualRow): RosterPlayerLike => ({
+  name: r.name.trim(),
+  number: r.number.trim() || null,
+  size: r.size || null,
+  topSize: null,
+  bottomSize: null,
+  hatSize: null,
+});
+const fromPlayer = (p: RosterPlayerLike): ManualRow => ({ name: p.name, number: p.number ?? "", size: p.size || p.topSize || "" });
+
+function ManualRoster({ rows, onChange, onDone, teamName, onTeamName }: {
+  rows: ManualRow[];
+  onChange: (rows: ManualRow[]) => void;
+  onDone: () => void;
+  teamName: string | null;
+  onTeamName: (v: string) => void;
+}) {
+  const set = (i: number, patch: Partial<ManualRow>) => onChange(rows.map((r, j) => (j === i ? { ...r, ...patch } : r)));
+  const filled = rows.filter((r) => r.name.trim() || r.number.trim() || r.size);
+  const missingSize = filled.filter((r) => !r.size).length;
+
+  // Enter moves down a row (and adds one at the end) instead of submitting the order.
+  function onKeyDown(e: React.KeyboardEvent<HTMLInputElement | HTMLSelectElement>, i: number, field: keyof ManualRow) {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    if (i === rows.length - 1) onChange([...rows, emptyRow()]);
+    setTimeout(() => document.getElementById(`mr-${i + 1}-${field}`)?.focus(), 0);
+  }
+
+  // Pasting several rows copied from Excel or Google Sheets fills the table.
+  function onPaste(e: React.ClipboardEvent<HTMLInputElement>, i: number) {
+    const text = e.clipboardData.getData("text");
+    if (!/\n/.test(text.trim())) return;
+    e.preventDefault();
+    const pasted = text.trim().split(/\r?\n/).map((line) => {
+      const cells = line.split(/\t|,/).map((c) => c.trim());
+      const [name = "", number = "", size = ""] = cells;
+      return { name, number: number.replace(/^#/, "").slice(0, 3), size: normalizeSize(size) ?? "" };
+    }).filter((r) => r.name || r.number || r.size);
+    const next = [...rows.slice(0, i), ...pasted, ...rows.slice(i).filter((r) => r.name || r.number || r.size)];
+    onChange(next.length ? next : [emptyRow()]);
+  }
+
+  return (
+    <div>
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[420px] text-sm">
+          <thead>
+            <tr className="text-left text-xs font-semibold uppercase tracking-wider text-slate-400">
+              <th className="w-8 pb-2" />
+              <th className="pb-2">Name</th>
+              <th className="w-20 pb-2">#</th>
+              <th className="w-28 pb-2">Size</th>
+              <th className="w-8 pb-2" />
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => {
+              const needsSize = (r.name.trim() || r.number.trim()) && !r.size;
+              return (
+                <tr key={i}>
+                  <td className="pr-2 text-xs text-slate-400 tabular-nums">{i + 1}</td>
+                  <td className="py-1 pr-2">
+                    <input id={`mr-${i}-name`} value={r.name} placeholder={i === 0 ? "Mason Rivera" : ""} aria-label={`Player ${i + 1} name`}
+                      onChange={(e) => set(i, { name: e.target.value })} onKeyDown={(e) => onKeyDown(e, i, "name")} onPaste={(e) => onPaste(e, i)} className="!py-2" />
+                  </td>
+                  <td className="py-1 pr-2">
+                    <input id={`mr-${i}-number`} value={r.number} placeholder={i === 0 ? "12" : ""} inputMode="numeric" maxLength={3} aria-label={`Player ${i + 1} number`}
+                      onChange={(e) => set(i, { number: e.target.value.replace(/[^0-9]/g, "") })} onKeyDown={(e) => onKeyDown(e, i, "number")} className="!py-2 text-center" />
+                  </td>
+                  <td className="py-1 pr-2">
+                    <select id={`mr-${i}-size`} value={r.size} aria-label={`Player ${i + 1} size`} onChange={(e) => set(i, { size: e.target.value })}
+                      onKeyDown={(e) => onKeyDown(e, i, "size")} className={cx("!py-2", needsSize && "!border-amber-500")}>
+                      <option value="">Size</option>
+                      {ADULT_SIZES.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </td>
+                  <td className="py-1 text-center">
+                    <button type="button" aria-label={`Remove player ${i + 1}`} onClick={() => onChange(rows.length > 1 ? rows.filter((_, j) => j !== i) : [emptyRow()])}
+                      className="text-slate-400 hover:text-red-600">✕</button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+        <button type="button" onClick={() => onChange([...rows, emptyRow()])} className="font-semibold text-accent-500 hover:text-accent-400">+ Add player</button>
+        <button type="button" onClick={() => onChange([...rows, ...Array.from({ length: 5 }, emptyRow)])} className="font-medium text-slate-500 hover:text-slate-900">+ 5 more rows</button>
+        <span className="text-slate-400">{filled.length} {filled.length === 1 ? "player" : "players"}{missingSize ? ` · ${missingSize} missing a size` : ""}</span>
+        <button type="button" onClick={onDone} className="ml-auto font-medium text-slate-500 underline hover:text-slate-900">Use a spreadsheet instead</button>
+      </div>
+      <p className="mt-2 text-xs text-slate-500">Size is the player&apos;s shirt size. Caps, helmets, gloves, belts and socks are sized from it automatically. Tip: paste rows straight from Excel.</p>
+      {teamName !== null && (
+        <input value={teamName} onChange={(e) => onTeamName(e.target.value)} placeholder="Team name (optional) — e.g. Varsity" className="mt-3 sm:!w-80" aria-label="Team name" />
       )}
     </div>
   );
