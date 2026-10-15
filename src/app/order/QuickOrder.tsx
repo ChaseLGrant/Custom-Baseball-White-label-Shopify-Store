@@ -394,15 +394,21 @@ function GearTile({ product, on, onToggle, color, logoId, logoUrls, priced, qty,
   const loc = product.locations[0];
   const low = lowestUnitCents(product);
   const team = product.orderUnit === "team";
+  // If the team color isn't offered for this item, say so instead of silently switching.
+  // (Skip print-color items like eye black, whose color is the ink, not the item.)
+  const shown = pickColor(product, color);
+  const fallback = shown !== color && product.photo?.recolor !== false ? product.colors.find((c) => c.id === shown)?.name : null;
+  const wanted = getProduct("jersey-full-button")!.colors.find((c) => c.id === color)?.name;
   return (
     <div className={cx("relative overflow-hidden rounded-2xl transition", on ? "bg-surface ring-2 ring-accent-500" : "bg-surface ring-1 ring-slate-200 hover:ring-slate-400")}>
       <button type="button" onClick={onToggle} aria-pressed={on} className="block w-full text-left">
         <div className="studio p-3">
-          <ProductPreview product={product} colorId={pickColor(product, color)} single decorations={logoId && loc ? [{ location: loc.id, logoId }] : []} logoUrls={logoUrls}
+          <ProductPreview product={product} colorId={shown} single decorations={logoId && loc ? [{ location: loc.id, logoId }] : []} logoUrls={logoUrls}
             className="mx-auto w-[88%]" />
         </div>
         <span className={cx("absolute right-2.5 top-2.5 grid h-7 w-7 place-items-center rounded-full text-sm font-bold transition", on ? "bg-accent-500 text-black" : "bg-surface text-slate-400 ring-1 ring-slate-200")}>{on ? "✓" : "+"}</span>
         <span className="block px-3 pt-2 text-sm font-semibold leading-tight">{product.name}</span>
+        {fallback && <span className="block px-3 pt-1 text-xs text-amber-700">Shown in {fallback} · not offered in {wanted}</span>}
         <span className="block px-3 pb-3 text-xs text-slate-500">
           {on && priced?.quantity ? `${formatMoney(priced.effectiveUnitCents)} ${product.unitLabel ? "/ " + product.unitLabel : "each"}` : `from ${formatMoney(low ?? 0)} · min ${product.minQty}`}
         </span>
