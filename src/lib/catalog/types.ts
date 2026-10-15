@@ -73,12 +73,8 @@ export interface Product {
   defaultTeamQty?: number;
   /** For sizeField "mapped": apparel size -> product size. */
   sizeMap?: Record<string, string>;
-  /**
-   * Optional real product photos (e.g. your supplier's blank product shots),
-   * keyed by color id. When present they replace the illustrated mockup, and
-   * logos are placed using each location's box (in the 200x220 canvas).
-   */
-  photos?: Record<string, string>;
+  /** Optional real product photo; replaces the illustrated mockup. */
+  photo?: ProductPhoto;
   description: string;
   features: string[];
   sports: string[];
@@ -126,4 +122,36 @@ export interface Catalog {
   products: Product[];
   decorationMethods: Record<DecorationMethodId, DecorationMethod>;
   shipping: ShippingRule;
+}
+
+export interface Box {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/**
+ * A real product photo, prepared by scripts/photos/process.py (transparent
+ * background, centered in a 200x220 frame). One photo covers every color:
+ * the dyed material is re-tinted in the browser, while labels, buckles and
+ * glossy highlights keep their original look.
+ */
+export interface ProductPhoto {
+  src: string;
+  /** Color id the photo was shot in; shown untouched. */
+  color: string;
+  /** false: show the same photo for every color (e.g. eye black, decal sheet). */
+  recolor: boolean;
+  /** Which part is the dyed material: the dark part (black items) or the light part (gray pants). */
+  material: "dark" | "light";
+  /** Shading range of the dyed material (from photo-meta.json). */
+  lo: number;
+  hi: number;
+  /** Logo placement per location id on this photo. Locations without a box aren't shown on the photo. */
+  boxes: Record<string, Box>;
+  /** Extra copies of a location's logo (repeating prints). */
+  copies?: Record<string, Box[]>;
+  /** Where a player number is printed on the photo, if anywhere. */
+  number?: { x: number; y: number; size: number };
 }

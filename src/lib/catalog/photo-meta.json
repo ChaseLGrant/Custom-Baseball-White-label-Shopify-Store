@@ -1,0 +1,87 @@
+{
+  "arm-sleeve-black": {
+    "lo": 0.0714,
+    "hi": 0.1683,
+    "material": "dark"
+  },
+  "baseball-belt-black": {
+    "lo": 0.0008,
+    "hi": 0.3401,
+    "material": "dark"
+  },
+  "bat-grip-black": {
+    "lo": 0.0,
+    "hi": 0.3832,
+    "material": "dark"
+  },
+  "batting-gloves-black": {
+    "lo": 0.0,
+    "hi": 0.2709,
+    "material": "dark"
+  },
+  "batting-helmet-black": {
+    "lo": 0.0,
+    "hi": 0.4126,
+    "material": "dark"
+  },
+  "bp-tee-black": {
+    "lo": 0.0078,
+    "hi": 0.2008,
+    "material": "dark"
+  },
+  "equipment-bag-black": {
+    "lo": 0.0,
+    "hi": 0.3126,
+    "material": "dark"
+  },
+  "eye-black": {
+    "lo": 0.0317,
+    "hi": 0.2465,
+    "material": "dark"
+  },
+  "fleece-hoodie-black": {
+    "lo": 0.0031,
+    "hi": 0.1919,
+    "material": "dark"
+  },
+  "hat-stretch-fit-black": {
+    "lo": 0.0157,
+    "hi": 0.3823,
+    "material": "dark"
+  },
+  "helmet-decal-kit": {
+    "lo": 0.0,
+    "hi": 0.4,
+    "material": "dark"
+  },
+  "jersey-full-button-black": {
+    "lo": 0.0087,
+    "hi": 0.2431,
+    "material": "dark"
+  },
+  "pants-piped-gray": {
+    "lo": 0.4723,
+    "hi": 0.8167,
+    "material": "light"
+  },
+  "pine-tar": {
+    "lo": 0.0,
+    "hi": 0.3849,
+    "material": "dark"
+  },
+  "sliding-mitt-black": {
+    "lo": 0.0078,
+    "hi": 0.2106,
+    "material": "dark"
+  },
+  "team-socks-black": {
+    "lo": 0.0,
+    "hi": 0.2316,
+    "material": "dark"
+  },
+  "wrist-tape-black": {
+    "lo": 0.0003,
+    "hi": 0.2795,
+    "material": "dark"
+  }
+}

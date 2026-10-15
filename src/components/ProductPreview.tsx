@@ -6,7 +6,7 @@
 // It's a visual guide, not the production proof — final artwork is always
 // approved on a proof before anything is made.
 import type { ReactNode } from "react";
-import type { Product } from "@/lib/catalog";
+import type { Product, ProductPhoto } from "@/lib/catalog";
 
 interface Props {
   product: Product;
@@ -364,8 +364,12 @@ const NUMBER_SPOT: Partial<Record<Shape, { view: "front" | "back"; x: number; y:
 export function ProductPreview({ product, colorId, decorations, logoUrls, names, numbers, sampleName = "PLAYER", sampleNumber = "12", className, single }: Props) {
   const hex = product.colors.find((c) => c.id === colorId)?.hex ?? "#d1d5db";
   const shape = product.shape;
-  const photo = product.photos?.[colorId];
-  const twoViews = !single && !photo && VIEWS[shape] && (product.locations.some((l) => l.view === "back") || ((names || numbers) && NUMBER_SPOT[shape]?.view === "back"));
+  if (product.photo) {
+    return (
+      <PhotoPreview product={product} colorId={colorId} hex={hex} decorations={decorations} logoUrls={logoUrls} numbers={numbers} sampleNumber={sampleNumber} className={className} />
+    );
+  }
+  const twoViews = !single && VIEWS[shape] && (product.locations.some((l) => l.view === "back") || ((names || numbers) && NUMBER_SPOT[shape]?.view === "back"));
   const views: ("front" | "back")[] = twoViews ? ["front", "back"] : ["front"];
 
   return (
@@ -379,7 +383,7 @@ export function ProductPreview({ product, colorId, decorations, logoUrls, names,
             <svg viewBox="0 0 200 220" className="w-full" role="img" aria-label={`${product.name} ${view} view`}>
               <Defs p={p} />
               <g filter={`url(#d-${p.id})`}>
-                {photo ? <image href={photo} x="0" y="0" width="200" height="220" preserveAspectRatio="xMidYMid meet" /> : ART[shape](p, view)}
+                {ART[shape](p, view)}
               </g>
 
               {/* Logos at their real placements (plus repeat copies for repeating prints). */}
@@ -425,6 +429,114 @@ export function ProductPreview({ product, colorId, decorations, logoUrls, names,
           </figure>
         );
       })}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Real product photos
+// ---------------------------------------------------------------------------
+
+/**
+ * Re-tints a product photo to another team color. The dyed material's shading
+ * (lo..hi) is stretched to 0..1, multiplied by the target color, and the
+ * pixels that aren't the dyed material (white labels, metal buckles, glossy
+ * reflections, dark piping on light pants) are laid back on top untouched.
+ */
+function TintFilter({ id, photo, hex }: { id: string; photo: ProductPhoto; hex: string }) {
+  const n = parseInt(hex.slice(1), 16);
+  const targetLum = (0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255;
+  const range = Math.max(photo.hi - photo.lo, 0.02);
+  const slope = 1 / range;
+  const intercept = -photo.lo / range;
+  // Darkest shade relative to the flat color: lighter colors need a higher floor to still read as that color.
+  const floor = targetLum > 0.75 ? 0.66 : targetLum > 0.45 ? 0.5 : 0.36;
+  // Mask of pixels to keep from the original photo.
+  const ramp = 12;
+  const lumRow = (k: number, offset: number) => `${(k * 0.2126).toFixed(4)} ${(k * 0.7152).toFixed(4)} ${(k * 0.0722).toFixed(4)} 0 ${offset.toFixed(4)}`;
+  const keepRow =
+    photo.material === "dark"
+      ? lumRow(ramp, -ramp * (photo.hi + 0.06)) // keep what's brighter than the dyed range
+      : lumRow(-ramp, ramp * (photo.lo - 0.06)); // keep what's darker than the dyed range
+  return (
+    <filter id={id} x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
+      <feColorMatrix in="SourceGraphic" type="matrix" values={`${lumRow(1, 0)} ${lumRow(1, 0)} ${lumRow(1, 0)} 0 0 0 1 0`} result="lum" />
+      <feComponentTransfer in="lum" result="norm">
+        <feFuncR type="linear" slope={slope} intercept={intercept} />
+        <feFuncG type="linear" slope={slope} intercept={intercept} />
+        <feFuncB type="linear" slope={slope} intercept={intercept} />
+      </feComponentTransfer>
+      <feComponentTransfer in="norm" result="shade">
+        <feFuncR type="gamma" amplitude={1 - floor} exponent="0.9" offset={floor} />
+        <feFuncG type="gamma" amplitude={1 - floor} exponent="0.9" offset={floor} />
+        <feFuncB type="gamma" amplitude={1 - floor} exponent="0.9" offset={floor} />
+      </feComponentTransfer>
+      <feFlood floodColor={hex} result="tint" />
+      <feBlend in="shade" in2="tint" mode="multiply" result="colored" />
+      <feComponentTransfer in="norm" result="sheen">
+        <feFuncR type="gamma" amplitude="0.22" exponent="5" offset="0" />
+        <feFuncG type="gamma" amplitude="0.22" exponent="5" offset="0" />
+        <feFuncB type="gamma" amplitude="0.22" exponent="5" offset="0" />
+      </feComponentTransfer>
+      <feBlend in="sheen" in2="colored" mode="screen" result="lit" />
+      <feComposite in="lit" in2="SourceAlpha" operator="in" result="litA" />
+      <feColorMatrix in="SourceGraphic" type="matrix" values={`1 0 0 0 0 0 1 0 0 0 0 0 1 0 0 ${keepRow}`} result="keepRaw" />
+      <feComposite in="keepRaw" in2="SourceAlpha" operator="in" result="keep" />
+      <feMerge>
+        <feMergeNode in="litA" />
+        <feMergeNode in="keep" />
+      </feMerge>
+    </filter>
+  );
+}
+
+function PhotoPreview({ product, colorId, hex, decorations, logoUrls, numbers, sampleNumber, className }: {
+  product: Product;
+  colorId: string;
+  hex: string;
+  decorations: { location: string; logoId: string | null }[];
+  logoUrls: Record<string, string>;
+  numbers?: boolean;
+  sampleNumber: string;
+  className?: string;
+}) {
+  const photo = product.photo!;
+  const tint = photo.recolor && colorId !== photo.color;
+  const filterId = `ph-${product.id}-${colorId}`;
+  const ink = isLight(hex) ? "#13294b" : "#ffffff";
+  const numberColor = photo.recolor ? ink : isLight(hex) ? shade(hex, -60) : hex;
+  return (
+    <div className={`flex gap-2 ${className ?? ""}`}>
+      <figure className="flex-1">
+        <svg viewBox="0 0 200 220" className="w-full" role="img" aria-label={product.name}>
+          {tint && (
+            <defs>
+              <TintFilter id={filterId} photo={photo} hex={hex} />
+            </defs>
+          )}
+          <image href={photo.src} x="0" y="0" width="200" height="220" preserveAspectRatio="xMidYMid meet" filter={tint ? `url(#${filterId})` : undefined} />
+          {product.locations.map((loc) => {
+            const box = photo.boxes[loc.id];
+            const d = decorations.find((x) => x.location === loc.id);
+            if (!box || !d) return null;
+            const url = d.logoId ? logoUrls[d.logoId] : null;
+            // On eye black, a player number replaces the second strip's logo.
+            const copies = numbers && product.shape === "eyeblack" ? [] : photo.copies?.[loc.id] ?? [];
+            return [box, ...copies].map((b, i) =>
+              url ? (
+                <image key={`${loc.id}${i}`} href={url} x={b.x} y={b.y} width={b.w} height={b.h} preserveAspectRatio="xMidYMid meet" />
+              ) : (
+                <rect key={`${loc.id}${i}`} x={b.x} y={b.y} width={b.w} height={b.h} rx="4" fill="none" stroke={ink} strokeDasharray="4 3" opacity=".6" />
+              ),
+            );
+          })}
+          {numbers && photo.number && (
+            <text x={photo.number.x} y={photo.number.y} textAnchor="middle" fontSize={photo.number.size} fontWeight="900" fill={numberColor} fontFamily="'Barlow Condensed', Arial Black, sans-serif">
+              {sampleNumber}
+            </text>
+          )}
+        </svg>
+      </figure>
     </div>
   );
 }

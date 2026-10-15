@@ -46,21 +46,18 @@ Use it when the price can't be known in advance. Examples: fully sublimated cust
 
 Existing orders keep the price they were placed at. Drafts and reorders use the new prices.
 
-## 6. Real product photos (optional)
+## 6. Product photos
 
-Each product shows a detailed illustrated mockup. To show real photos instead:
+Each product can show a real photo instead of the illustrated mockup. One photo covers every color: the site re-tints the item in the browser and keeps labels, buckles and glossy highlights as they are.
 
-1. Get blank product photos from your supplier (most give resellers photos they're allowed to use). Use transparent PNGs about 1000px tall, one per color.
-2. Put them in `public/products/`, e.g. `public/products/helmet-black.png`.
-3. Add them to the product:
+1. Put the original photo (plain white or black background, one item, no logos) in `assets-src/photos/`, named after the product, e.g. `batting-helmet-black.png`.
+2. Run `python3 scripts/photos/process.py`. It removes the background, centers the item and writes `public/products/<name>.webp` plus its shading data to `src/lib/catalog/photo-meta.json`.
+3. In `src/lib/catalog/index.ts`, add to the product:
 
 ```ts
-photos: {
-  black: "/products/helmet-black.png",
-  navy: "/products/helmet-navy.png",
-},
+photo: photo("batting-helmet-black", "black", { side: { x: 44, y: 54, w: 48, h: 44 } }),
 ```
 
-4. Adjust each location's `box` (in a 200 × 220 frame) so the customer's logo lands in the right spot on the photo.
+The boxes say where the customer's logo goes for each location, in a 200 × 220 frame. Pass `{ recolor: false }` for items that look the same in every color (eye black, decal sheets).
 
-Colors without a photo keep using the illustrated mockup.
+Best results come from photos of the item in **white** (it tints into any color cleanly) or **black**. Products without a photo keep the illustrated mockup.

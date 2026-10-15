@@ -3,7 +3,7 @@
 import { build } from "esbuild";
 import postcss from "postcss";
 import tailwind from "@tailwindcss/postcss";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, readdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 const root = path.resolve(import.meta.dirname, "../..");
@@ -15,6 +15,13 @@ const ALIASES = {
   "@/lib/actions/quick": shim("quick-actions.ts"),
 };
 
+// Product photos are embedded as data URIs so the preview is a single file.
+const photoDir = path.join(root, "public/products");
+const photos = {};
+for (const f of (await readdir(photoDir)).filter((f) => f.endsWith(".webp"))) {
+  photos[`/products/${f}`] = `data:image/webp;base64,${(await readFile(path.join(photoDir, f))).toString("base64")}`;
+}
+
 const js = await build({
   entryPoints: [path.join(root, "scripts/demo/main.tsx")],
   bundle: true,
@@ -23,7 +30,7 @@ const js = await build({
   format: "iife",
   target: "es2020",
   jsx: "automatic",
-  define: { "process.env.NODE_ENV": '"production"' },
+  define: { "process.env.NODE_ENV": '"production"', __PRODUCT_PHOTOS__: JSON.stringify(photos) },
   logLevel: "warning",
   plugins: [
     {

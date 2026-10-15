@@ -10,3 +10,4 @@ prisma/*.db-journal
 .DS_Store
 storage/
 demo-dist/
+assets-src/

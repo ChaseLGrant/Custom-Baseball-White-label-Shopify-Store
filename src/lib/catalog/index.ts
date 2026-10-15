@@ -15,7 +15,8 @@
 // instant price. See docs/CATALOG.md.
 // =============================================================================
 
-import type { Catalog, ColorOption, DecorationMethod, DecorationMethodId, Product } from "./types";
+import type { Box, Catalog, ColorOption, DecorationMethod, DecorationMethodId, Product, ProductPhoto } from "./types";
+import PHOTO_META from "./photo-meta.json";
 
 export * from "./types";
 
@@ -135,10 +136,17 @@ const YOUTH_ADULT = (youth: string, adult: string) => ({
   YS: youth, YM: youth, YL: youth, YXL: youth, S: adult, M: adult, L: adult, XL: adult, "2XL": adult, "3XL": adult,
 });
 
+/** A product photo from public/products, with its measured shading range. */
+function photo(file: keyof typeof PHOTO_META, color: string, boxes: Record<string, Box>, extra: Partial<ProductPhoto> = {}): ProductPhoto {
+  const m = PHOTO_META[file];
+  return { src: `/products/${file}.webp`, color, recolor: true, material: m.material as "dark" | "light", lo: m.lo, hi: m.hi, boxes, ...extra };
+}
+
 const products: Product[] = [
   {
     id: "jersey-full-button",
     sku: "CC-JB100",
+    photo: photo("jersey-full-button-black", "black", { "front-chest": { x: 46, y: 60, w: 108, h: 36 }, "left-chest": { x: 113, y: 50, w: 26, h: 26 }, "left-sleeve": { x: 161, y: 54, w: 18, h: 18 } }),
     name: "Pro Full-Button Jersey",
     category: "JERSEY",
     group: "uniforms",
@@ -181,6 +189,7 @@ const products: Product[] = [
   {
     id: "pants-piped",
     sku: "CC-PP200",
+    photo: photo("pants-piped-gray", "gray", { "left-hip": { x: 117, y: 34, w: 20, h: 20 } }),
     name: "Pro Piped Baseball Pants",
     category: "PANTS",
     group: "uniforms",
@@ -217,6 +226,7 @@ const products: Product[] = [
   {
     id: "hat-stretch-fit",
     sku: "CC-HS300",
+    photo: photo("hat-stretch-fit-black", "black", { front: { x: 70, y: 50, w: 60, h: 50 } }),
     name: "Structured Stretch-Fit Cap",
     category: "HAT",
     group: "headwear",
@@ -254,6 +264,7 @@ const products: Product[] = [
   {
     id: "bp-tee",
     sku: "CC-BP400",
+    photo: photo("bp-tee-black", "black", { "front-center": { x: 66, y: 60, w: 68, h: 56 }, "left-chest": { x: 116, y: 54, w: 24, h: 24 } }),
     name: "Performance Batting Practice Tee",
     category: "SHIRT",
     group: "apparel",
@@ -295,6 +306,7 @@ const products: Product[] = [
   {
     id: "fleece-hoodie",
     sku: "CC-FH500",
+    photo: photo("fleece-hoodie-black", "black", { "front-center": { x: 68, y: 90, w: 64, h: 40 } }),
     name: "Team Fleece Hoodie",
     category: "OUTERWEAR",
     group: "apparel",
@@ -335,6 +347,7 @@ const products: Product[] = [
   {
     id: "equipment-bag",
     sku: "CC-EB600",
+    photo: photo("equipment-bag-black", "black", { "front-panel": { x: 78, y: 98, w: 44, h: 40 } }),
     name: "Team Equipment Backpack",
     category: "ACCESSORY",
     group: "gear",
@@ -376,6 +389,7 @@ const products: Product[] = [
   {
     id: "batting-helmet",
     sku: "CC-BH800",
+    photo: photo("batting-helmet-black", "black", { side: { x: 44, y: 54, w: 48, h: 44 } }),
     name: "Custom Batting Helmet",
     category: "HELMET",
     group: "headwear",
@@ -415,6 +429,7 @@ const products: Product[] = [
   {
     id: "helmet-decal-kit",
     sku: "CC-HD810",
+    photo: photo("helmet-decal-kit", "white", { logo: { x: 30, y: 40, w: 76, h: 76 } }, { recolor: false, copies: { logo: [{ x: 44, y: 138, w: 32, h: 32 }] }, number: { x: 147, y: 128, size: 54 } }),
     name: "Helmet Decal Kit",
     category: "HELMET",
     group: "headwear",
@@ -456,6 +471,7 @@ const products: Product[] = [
   {
     id: "batting-gloves",
     sku: "CC-BG820",
+    photo: photo("batting-gloves-black", "black", { backhand: { x: 70, y: 88, w: 44, h: 38 } }),
     name: "Custom Batting Gloves",
     category: "GLOVES",
     group: "gear",
@@ -495,6 +511,7 @@ const products: Product[] = [
   {
     id: "sliding-mitt",
     sku: "CC-SM830",
+    photo: photo("sliding-mitt-black", "black", { back: { x: 70, y: 58, w: 52, h: 48 } }),
     name: "Custom Sliding Mitt",
     category: "GLOVES",
     group: "gear",
@@ -533,6 +550,7 @@ const products: Product[] = [
   {
     id: "baseball-belt",
     sku: "CC-BB840",
+    photo: photo("baseball-belt-black", "black", { strap: { x: 62, y: 100, w: 36, h: 17 } }),
     name: "Custom Team Belt",
     category: "BELT",
     group: "uniforms",
@@ -569,6 +587,7 @@ const products: Product[] = [
   {
     id: "arm-sleeve",
     sku: "CC-AS850",
+    photo: photo("arm-sleeve-black", "black", { upper: { x: 84, y: 28, w: 30, h: 30 } }, { number: { x: 99, y: 112, size: 30 } }),
     name: "Compression Arm Sleeve",
     category: "GAMEDAY",
     group: "gear",
@@ -607,6 +626,7 @@ const products: Product[] = [
   {
     id: "team-socks",
     sku: "CC-TS860",
+    photo: photo("team-socks-black", "black", { calf: { x: 54, y: 42, w: 38, h: 38 } }),
     name: "Custom Knit Team Socks",
     category: "SOCKS",
     group: "uniforms",
@@ -647,6 +667,7 @@ const products: Product[] = [
   {
     id: "bat-grip",
     sku: "CC-GT870",
+    photo: photo("bat-grip-black", "black", { handle: { x: 89, y: 70, w: 22, h: 22 } }, { copies: { handle: [{ x: 89, y: 124, w: 22, h: 22 }] } }),
     name: "Custom Printed Bat Grip",
     category: "BAT",
     group: "gameday",
@@ -684,6 +705,7 @@ const products: Product[] = [
   {
     id: "pine-tar",
     sku: "CC-PT880",
+    photo: photo("pine-tar", "black", { label: { x: 72, y: 78, w: 56, h: 56 } }),
     name: "Custom-Label Pine Tar Stick",
     category: "BAT",
     group: "gameday",
@@ -721,6 +743,7 @@ const products: Product[] = [
   {
     id: "wrist-tape",
     sku: "CC-WT890",
+    photo: photo("wrist-tape-black", "black", { repeat: { x: 122, y: 101, w: 26, h: 26 } }, { copies: { repeat: [{ x: 154, y: 102, w: 24, h: 24 }, { x: 42, y: 110, w: 28, h: 28 }] } }),
     name: "Custom Printed Wrist Tape",
     category: "GAMEDAY",
     group: "gameday",
@@ -758,6 +781,7 @@ const products: Product[] = [
   {
     id: "eye-black",
     sku: "CC-EB900",
+    photo: photo("eye-black", "black", { strip: { x: 74, y: 68, w: 52, h: 26 } }, { recolor: false, copies: { strip: [{ x: 74, y: 114, w: 52, h: 26 }] }, number: { x: 99, y: 136, size: 24 } }),
     name: "Custom Eye Black Strips",
     category: "GAMEDAY",
     group: "gameday",

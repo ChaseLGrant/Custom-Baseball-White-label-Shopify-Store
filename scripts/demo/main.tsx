@@ -8,13 +8,17 @@ import CatalogPage from "@/app/catalog/page";
 import ProductPage from "@/app/catalog/[id]/page";
 import { QuickOrder } from "@/app/order/QuickOrder";
 import { Logo, SiteFooter, SiteHeader } from "@/components/SiteHeader";
-import { getProduct } from "@/lib/catalog";
+import { CATALOG, getProduct } from "@/lib/catalog";
 import { formatMoney } from "@/lib/domain";
 import { priceOrder } from "@/lib/pricing";
 import { buildLineItems } from "@/lib/roster";
 import { quickLineConfig } from "@/lib/quick-config";
 import { lastPayload, lastRoster, setOnPlaced } from "./shims/quick-actions";
 import { RouterContext, parseHref, useRouter as useRouterHook, type Route } from "./router";
+
+// Point product photos at the copies embedded in this page.
+declare const __PRODUCT_PHOTOS__: Record<string, string>;
+for (const p of CATALOG.products) if (p.photo && __PRODUCT_PHOTOS__[p.photo.src]) p.photo.src = __PRODUCT_PHOTOS__[p.photo.src];
 
 // ---------------------------------------------------------------------------
 // Sample files so anyone can try the order page without their own logo/roster

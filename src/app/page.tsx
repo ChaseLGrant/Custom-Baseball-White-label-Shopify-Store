@@ -55,7 +55,7 @@ export default function Home() {
               </p>
               <div className="mt-8 flex flex-wrap gap-3">
                 <ButtonLink href="/order" variant="accent" className="px-7 py-3.5 text-base">Start your order →</ButtonLink>
-                <ButtonLink href="/catalog" className="bg-white/10 px-7 py-3.5 text-base ring-1 ring-white/20 hover:bg-white/20">Shop all gear</ButtonLink>
+                <ButtonLink href="/catalog" variant="secondary" className="px-7 py-3.5 text-base">Shop all gear</ButtonLink>
               </div>
               <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-400">
                 {["Real prices up front", "Roster upload", "Approve proofs online", "1-click reorders"].map((t) => (
