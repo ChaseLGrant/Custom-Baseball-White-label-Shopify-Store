@@ -6,9 +6,9 @@ const cx = (...c: (string | false | null | undefined)[]) => c.filter(Boolean).jo
 
 type Variant = "primary" | "secondary" | "danger" | "ghost" | "accent";
 const VARIANTS: Record<Variant, string> = {
-  primary: "bg-slate-900 text-slate-50 hover:bg-slate-700 shadow-sm",
-  accent: "bg-accent-500 text-black hover:bg-accent-600 shadow-[0_6px_20px_-6px_rgba(43,255,136,.6)]",
-  secondary: "bg-surface text-slate-900 ring-1 ring-slate-200 hover:bg-slate-50 shadow-sm",
+  primary: "bg-white text-black hover:bg-slate-700 shadow-sm",
+  accent: "bg-white text-black hover:bg-accent-600 shadow-[0_8px_24px_-12px_rgba(255,255,255,.35)] tracking-wide",
+  secondary: "bg-transparent text-white ring-1 ring-white/30 hover:bg-white/5 hover:ring-white/60",
   danger: "bg-surface text-red-600 ring-1 ring-red-200 hover:bg-red-50",
   ghost: "text-slate-700 hover:bg-slate-100",
 };

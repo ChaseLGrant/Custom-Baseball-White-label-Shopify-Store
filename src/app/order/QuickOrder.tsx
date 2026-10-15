@@ -275,8 +275,8 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
               const count = selected.filter((id) => getProduct(id)!.group === g.id).length;
               return (
                 <button type="button" key={g.id} onClick={() => setTab(g.id)}
-                  className={cx("whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition", tab === g.id ? "bg-brand-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200")}>
-                  {g.label}{count > 0 && <span className={cx("ml-1.5 rounded-full px-1.5 text-xs", tab === g.id ? "bg-accent-500" : "bg-surface text-slate-900")}>{count}</span>}
+                  className={cx("whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition", tab === g.id ? "bg-white text-black" : "bg-slate-100 text-slate-600 hover:bg-slate-200")}>
+                  {g.label}{count > 0 && <span className={cx("ml-1.5 rounded-full px-1.5 text-xs", tab === g.id ? "bg-black text-white" : "bg-surface text-slate-900")}>{count}</span>}
                 </button>
               );
             })}
@@ -377,7 +377,7 @@ export function QuickOrder({ signedIn, orgId, orgName, logos, teams, setupsPaid,
               </div>
             )}
             <button type="submit" disabled={!!missing || pending}
-              className="mt-5 w-full rounded-full bg-accent-500 px-6 py-4 text-base font-bold text-black shadow-[0_8px_24px_-8px_rgba(43,255,136,.7)] transition hover:bg-accent-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:shadow-none">
+              className="mt-5 w-full rounded-full bg-accent-500 px-6 py-4 text-base font-bold text-black shadow-[0_8px_24px_-12px_rgba(255,255,255,.35)] transition hover:bg-accent-600 disabled:cursor-not-allowed disabled:bg-slate-200 disabled:text-slate-500 disabled:shadow-none">
               {payLabel}{!missing && !pending && " →"}
             </button>
             {state.error && <p role="alert" className="mt-2 text-sm text-red-600">{state.error}</p>}

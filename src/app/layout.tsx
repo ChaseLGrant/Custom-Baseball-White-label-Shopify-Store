@@ -1,11 +1,18 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { CATALOG } from "@/lib/catalog";
 import "@fontsource-variable/inter";
+import "@fontsource/barlow-condensed/600.css";
 import "@fontsource/barlow-condensed/700.css";
 import "@fontsource/barlow-condensed/800.css";
 import "./globals.css";
 
+export const viewport: Viewport = { themeColor: "#000000", colorScheme: "dark" };
+
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.URL ?? "https://club-custom.netlify.app"),
+  applicationName: "Club Custom",
+  openGraph: { siteName: "Club Custom", type: "website", title: "Club Custom — Team uniforms without the sales calls" },
+  twitter: { card: "summary_large_image" },
   title: { default: "Club Custom — Team uniforms without the sales calls", template: "%s · Club Custom" },
   description:
     "Self-service custom team uniforms for schools, colleges and club programs. Upload your logo once, import your roster, see real prices and pay online.",
@@ -16,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="min-h-screen">
         {CATALOG.isSample && (
-          <div className="border-b border-slate-200 bg-black px-4 py-1.5 text-center text-[11px] font-semibold tracking-widest text-accent-500">
+          <div className="border-b border-slate-200 bg-black px-4 py-1.5 text-center text-[10px] font-semibold tracking-[0.25em] text-slate-500">
             PREVIEW — <span className="sm:hidden">sample prices</span><span className="hidden sm:inline">prices shown are samples, not real supplier pricing</span>
           </div>
         )}

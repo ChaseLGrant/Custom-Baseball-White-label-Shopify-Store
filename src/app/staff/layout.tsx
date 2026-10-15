@@ -10,10 +10,10 @@ export default async function StaffLayout({ children }: { children: React.ReactN
   const user = await requireStaff();
   return (
     <div className="min-h-screen">
-      <header className="border-b border-slate-800 bg-brand-900 text-white">
+      <header className="border-b border-white/10 bg-black text-white">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center gap-6 px-4 py-3">
-          <Link href="/staff"><Logo /></Link>
-          <span className="rounded bg-accent-500 px-2 py-0.5 text-xs font-bold uppercase">Staff</span>
+          <Link href="/staff" aria-label="Club Custom" className="shrink-0"><Logo size="sm" className="!w-[124px] sm:!w-[150px]" /></Link>
+          <span className="eyebrow rounded bg-white px-2 py-0.5 text-black">Staff</span>
           <nav className="flex gap-1 text-sm [&_a]:text-slate-700 [&_a:hover]:bg-white/10">
             <NavLink href="/staff" label="Order queue" exact />
             <NavLink href="/staff/verifications" label="Verifications" />

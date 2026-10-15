@@ -37,7 +37,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
       />
       <div className="mb-4 flex flex-wrap gap-2 text-sm">
         {Object.entries(FILTERS).map(([k, v]) => (
-          <Link key={k} href={`/app/orders?f=${k}`} className={`rounded-full px-3 py-1 ${f === k ? "bg-brand-900 text-white" : "bg-surface ring-1 ring-slate-200"}`}>{v.label}</Link>
+          <Link key={k} href={`/app/orders?f=${k}`} className={`rounded-full px-3 py-1 ${f === k ? "bg-white text-black" : "bg-surface ring-1 ring-slate-200"}`}>{v.label}</Link>
         ))}
       </div>
       {orders.length === 0 ? (

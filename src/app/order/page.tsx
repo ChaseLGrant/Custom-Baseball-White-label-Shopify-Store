@@ -30,7 +30,7 @@ export default async function OrderPage({ searchParams }: { searchParams: Promis
     <div className="min-h-screen">
       <header className="sticky top-0 z-40 border-b border-slate-200/70 bg-surface/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-3.5">
-          <Link href={user ? "/app" : "/"}><Logo /></Link>
+          <Link href={user ? "/app" : "/"} aria-label="Club Custom" className="shrink-0"><Logo size="sm" priority className="!w-[124px] sm:!w-[150px]" /></Link>
           <nav className="flex items-center gap-4 text-sm font-medium text-slate-600">
             <Link href="/catalog" className="hover:text-slate-900">Shop gear</Link>
             {user ? <Link href="/app" className="hover:text-slate-900">My account</Link> : <Link href="/login?next=/order" className="hover:text-slate-900">Sign in</Link>}

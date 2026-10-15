@@ -49,7 +49,7 @@ export default async function CatalogPage({ searchParams }: { searchParams: Prom
 
 function Pill({ href, on, children }: { href: string; on: boolean; children: React.ReactNode }) {
   return (
-    <Link href={href} className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition ${on ? "bg-brand-900 text-white" : "bg-surface text-slate-700 ring-1 ring-slate-200 hover:ring-slate-300"}`}>
+    <Link href={href} className={`whitespace-nowrap rounded-full px-4 py-2 text-sm font-semibold transition ${on ? "bg-white text-black" : "bg-surface text-slate-700 ring-1 ring-slate-200 hover:ring-slate-300"}`}>
       {children}
     </Link>
   );

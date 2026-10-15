@@ -1,46 +1,48 @@
 @import "tailwindcss";
 
 /*
- * Club Custom palette: black and electric green.
+ * Club Custom palette: monochrome to match the white script logo.
+ * True black backgrounds, white type, soft greys; white is the one action color.
  * The gray scale is deliberately inverted (slate-50 is the darkest, slate-900
  * the lightest) so every "text-slate-900 on bg-slate-50" style reads as light
  * text on a black page across the whole app.
  */
 @theme {
-  --color-surface: #121417;
+  --color-surface: #111111;
 
-  --color-slate-50: #0a0b0d;
-  --color-slate-100: #181b1f;
-  --color-slate-200: #24282d;
-  --color-slate-300: #343a40;
-  --color-slate-400: #6c747c;
-  --color-slate-500: #8f979f;
-  --color-slate-600: #adb4ba;
-  --color-slate-700: #c9ced3;
-  --color-slate-800: #e3e6e9;
-  --color-slate-900: #f5f7f8;
+  --color-slate-50: #070707;
+  --color-slate-100: #161616;
+  --color-slate-200: #262626;
+  --color-slate-300: #3a3a3a;
+  --color-slate-400: #737373;
+  --color-slate-500: #9a9a9a;
+  --color-slate-600: #b5b5b5;
+  --color-slate-700: #d0d0d0;
+  --color-slate-800: #e6e6e6;
+  --color-slate-900: #f7f7f7;
 
-  /* Electric green — the one action color. Text on it is black. */
-  --color-accent-400: #72ffb0;
-  --color-accent-500: #2bff88;
-  --color-accent-600: #16e173;
+  /* White: the one action color. Text on it is black. */
+  --color-accent-400: #ffffff;
+  --color-accent-500: #ffffff;
+  --color-accent-600: #dcdcdc;
 
-  --color-brand-50: #0d1f15;
-  --color-brand-100: #12301f;
-  --color-brand-200: #1b4a30;
-  --color-brand-600: #2bff88;
-  --color-brand-700: #2bff88;
-  --color-brand-800: #1c2025;
-  --color-brand-900: #050607;
+  /* Brand tints: neutral greys; 600/700 are white for links and selected borders. */
+  --color-brand-50: #181818;
+  --color-brand-100: #222222;
+  --color-brand-200: #3d3d3d;
+  --color-brand-600: #ffffff;
+  --color-brand-700: #ededed;
+  --color-brand-800: #e6e6e6;
+  --color-brand-900: #000000;
 
-  /* Status tints tuned for a dark background */
-  --color-emerald-50: #0c2217;
-  --color-emerald-200: #1d4a32;
-  --color-emerald-500: #2bff88;
-  --color-emerald-600: #4ff29a;
-  --color-emerald-700: #6ff5ad;
-  --color-emerald-900: #b5fad3;
-  --color-emerald-950: #d8fde8;
+  /* Status tints tuned for a dark background; success is a muted sage, not a brand color */
+  --color-emerald-50: #101a14;
+  --color-emerald-200: #29402f;
+  --color-emerald-500: #8cc5a1;
+  --color-emerald-600: #9dcfae;
+  --color-emerald-700: #b0d9bd;
+  --color-emerald-900: #d2eadb;
+  --color-emerald-950: #e8f4ec;
   --color-amber-50: #261d07;
   --color-amber-200: #4d3a10;
   --color-amber-300: #6e5416;
@@ -74,37 +76,49 @@ body {
   font-feature-settings: "cv11", "ss01";
 }
 
-::selection { background: var(--color-accent-500); color: #000; }
+::selection { background: #ffffff; color: #000; }
 
-/* Big athletic headlines */
+/* Monochrome focus ring for keyboard users */
+:focus-visible { outline: 2px solid #ffffff; outline-offset: 2px; }
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; }
+
+/* Refined condensed caps headlines: pairs with the script logo */
 .font-display {
   font-family: var(--font-display);
-  font-weight: 800;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: -0.005em;
-  line-height: 0.92;
+  letter-spacing: 0.035em;
+  line-height: 0.98;
+}
+
+/* Small spaced-caps labels */
+.eyebrow {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.28em;
 }
 
 /* Product backdrops */
 .studio {
-  background: radial-gradient(120% 95% at 50% 0%, #22262b 0%, #16191c 55%, #101215 100%);
+  background: radial-gradient(120% 95% at 50% 0%, #252525 0%, #181818 55%, #111111 100%);
 }
 .studio-dark {
   background:
-    radial-gradient(60% 60% at 75% 35%, rgba(43, 255, 136, 0.08) 0%, rgba(43, 255, 136, 0) 70%),
-    radial-gradient(120% 90% at 50% 0%, #121417 0%, #08090a 70%);
+    radial-gradient(60% 60% at 75% 35%, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0) 70%),
+    radial-gradient(120% 90% at 50% 0%, #141414 0%, #000000 70%);
 }
 
 @layer base {
   input[type="text"], input[type="email"], input[type="password"], input[type="number"], input[type="tel"],
   input:not([type]), select, textarea {
     @apply w-full rounded-xl border border-slate-200 bg-slate-100 px-3.5 py-2.5 text-sm text-slate-900
-      transition placeholder:text-slate-400 focus:border-accent-500 focus:ring-4 focus:ring-accent-500/15 focus:outline-none disabled:opacity-60;
+      transition placeholder:text-slate-400 focus:border-slate-600 focus:ring-4 focus:ring-white/10 focus:outline-none disabled:opacity-60;
   }
   input[type="checkbox"], input[type="radio"] { accent-color: var(--color-accent-500); }
   input[type="file"] {
     @apply block w-full text-sm text-slate-600 file:mr-3 file:rounded-full file:border-0 file:bg-accent-500
-      file:px-4 file:py-2 file:text-sm file:font-semibold file:text-black hover:file:bg-accent-400;
+      file:px-4 file:py-2 file:text-sm file:font-semibold file:text-black hover:file:bg-accent-600;
   }
   label { @apply text-sm font-medium text-slate-700; }
 }
